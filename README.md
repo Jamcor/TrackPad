@@ -7,8 +7,11 @@ Dr James Cornwell @ the University of Sydney has contributed to GUI development,
 
 # Hardware and software requirements
 *MATLAB 2015a or later (including Statistics and Machine Learning Toolbox, Image Processing Toolbox)
+
 *Min. 16GB ram
+
 *GPU optional, though increased tracking speed
+
 *Image stack saved as .tif files (recommended max. 20 min acquisition frequency)
 
 # General description
