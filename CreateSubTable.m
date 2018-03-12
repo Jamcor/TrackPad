@@ -2,12 +2,20 @@ function tracks=CreateSubTable(tbl)
             [numb_tracks,~]=size(tbl);
             tracks=[];
             tracks.Track_ID=1:numb_tracks;
+            tracks.Parent_ID=zeros(numb_tracks,1);
             tracks.Ancestor_ID=zeros(numb_tracks,1);
             tracks.Progeny_ID=zeros(numb_tracks,1);
             tracks.Generation_ID=zeros(numb_tracks,1);
             tracks.Daughter_IDs=cell(numb_tracks,1);
             tracks.Track_ID=(1:numb_tracks)';
             tracks.Fate=cell(numb_tracks,1);
+            
+            annotations=tbl.Annotation_Name{1}{2}; %same for all cells 
+            
+            for i=1:length(annotations)-1
+            tracks=setfield(tracks,['Initial_' annotations{i}],cell(numb_tracks,1));
+            tracks=setfield(tracks,['Final_' annotations{i}],cell(numb_tracks,1));
+            end
             
             for i=1:numb_tracks
                 if ~isempty(tbl.Parent_ID(i))
@@ -16,7 +24,14 @@ function tracks=CreateSubTable(tbl)
                     tracks.Parent_ID(i)=NaN;
                 end
                 [~,lastframe]=size(tbl.time{i});
-                tracks.Fate{i}=tbl.Annotation_Symbol{i}(1,lastframe);
+                tracks.Fate(i)=tbl.Annotation_Symbol{i}(1,lastframe);
+                
+                for j=1:length(annotations)-1
+                    initial=getfield(tbl.Annotation_Symbol{i}{1,2},annotations{j});
+                    final=getfield(tbl.Annotation_Symbol{i}{1,end-1},annotations{j});
+                    tracks=setfield(tracks,['Initial_' annotations{j}],{i},{initial});
+                    tracks=setfield(tracks,['Final_' annotations{j}],{i},{final});
+                end
             end
             
             for i=1:length(tracks.Track_ID)
@@ -84,6 +99,11 @@ function tracks=CreateSubTable(tbl)
                     
                 end
             end
-            
+            tracks.Parent_ID=arrayfun(@(x) {x},tracks.Parent_ID)';
+            tracks.Track_ID=arrayfun(@(x) {x},tracks.Track_ID);
+            tracks.Ancestor_ID=arrayfun(@(x) {x},tracks.Ancestor_ID);
+            tracks.Progeny_ID=arrayfun(@(x) {x},tracks.Progeny_ID);
+            tracks.Generation_ID=arrayfun(@(x) {x},tracks.Generation_ID);
+
             return
         end
