@@ -2,7 +2,7 @@ function AdjustContrast
 % Adjusts contrast of an image stack
 [FileName,PathName,FilterIndex] = uigetfile('*.tif','Get image stack','MultiSelect','on');
 
-
+disp('here');
 TiffObj=Tiff([PathName FileName{1}],'r');
 
 % h=imshow(ImageCorrection(TiffObj.read),[]);
