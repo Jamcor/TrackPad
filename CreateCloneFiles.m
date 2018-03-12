@@ -1,22 +1,18 @@
-function complete_clone=CreateCloneFiles(tracks,tbl,TimeStamps,condition,savepath)
+function complete_clone=CreateCloneFiles(tracks,tbl,TimeStamps,varargin)
 
 numb_tracks=length(tracks.Track_ID);
-ancestor_IDs=unique(tracks.Ancestor_ID);
+ancestor_IDs=unique([tracks.Ancestor_ID{:}]);
 complete_clone={};
 
-if ~isdir([savepath condition])
-   mkdir([savepath condition]);
-end
-
 for i=1:length(ancestor_IDs)
-    disp(['Ancestor is ' num2str(ancestor_IDs(i))]);
+   disp(['Ancestor is ' num2str(ancestor_IDs(i))]);
    complete_clone{i}.TimeStamps=TimeStamps;
-   familyndx=(tracks.Ancestor_ID==ancestor_IDs(i)); 
-   trackids=tracks.Track_ID(familyndx);
+   familyndx=([tracks.Ancestor_ID{:}]==ancestor_IDs(i)); 
+   trackids=tracks.Track_ID{familyndx};
    
    for j=1:length(trackids)
-       disp(['Progeny is ' num2str(trackids(j))]);
-   complete_clone{i}.track{j}.TrackNum=tracks.Progeny_ID(trackids(j));    
+   disp(['Progeny is ' num2str(trackids(j))]);
+   complete_clone{i}.track{j}.TrackNum=tracks.Progeny_ID{trackids(j)};    
    complete_clone{i}.track{j}.T=tbl.time{trackids(j)};
    complete_clone{i}.track{j}.X=tbl.Position{trackids(j)}(:,1);
    complete_clone{i}.track{j}.Y=tbl.Position{trackids(j)}(:,2);
@@ -36,7 +32,7 @@ if isfield(tbl,'CellMask')
 end
 
 
-stopreason=[tracks.Fate{trackids(j)}{:}];
+stopreason=[tracks.Fate{trackids(j)}];
                     switch stopreason
                         case 'DI'
                             complete_clone{i}.track{j}.StopReason=1;
@@ -53,6 +49,16 @@ stopreason=[tracks.Fate{trackids(j)}{:}];
    end
    
 end
+
+if length(varargin)==2
+    condition=varargin{1};
+    savepath=varargin{2};
+if ~isdir([savepath condition])
+   mkdir([savepath condition]);
+end
 save([savepath condition '\' condition ' clonefile.mat'],'complete_clone');
+% else   
+%     save([condition ' clonefile.mat'],'complete_clone');
+end
 return
 end
