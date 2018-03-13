@@ -7,7 +7,7 @@ classdef avatar< handle
         NucleusRadius=NaN
         SearchRadius
         CorrelationThreshold
-        Memory=NaN
+        OptimisedParameter
         Track=[]
         Tracks=[];
         tol=2; % tolerance in pixels
@@ -24,10 +24,11 @@ classdef avatar< handle
     end
     
     methods
-        function obj=avatar(GUIHandle,TruthTable)
+        function obj=avatar(GUIHandle,TruthTable,parameter)
             obj.TruthTable=TruthTable;
             obj.GUIHandle=GUIHandle;
             obj.ImageStack=obj.GUIHandle.ImageStack;
+            obj.OptimisedParameter=parameter;
         end
         function set.Track(obj,value)
             obj.Track=value;
@@ -39,7 +40,7 @@ classdef avatar< handle
         end
         function SimulateTracking(obj)
 %              for i=191:height(obj.TruthTable)
-            for i=1:5
+            for i=1:1
                 if isnan(obj.NucleusRadius) % use truthset
                     obj.GUIHandle.CurrentTrackingParameters.NucleusRadius=...
                         round(mean(obj.TruthTable.Position{i}(1,3:4))); % use truthset radius
@@ -58,9 +59,6 @@ classdef avatar< handle
                 else
                     obj.GUIHandle.CurrentTrackingParameters.CorrelationThreshold=obj.CorrelationThreshold;
                 end
-                if ~isnan(obj.Memory)
-                    memory=obj.Memory;
-                end
                 % set frame
                 obj.GUIHandle.ImageStack.CurrentNdx=obj.TruthTable.Image_Number{i}(1);
                 % set ellipse position
@@ -69,13 +67,13 @@ classdef avatar< handle
                 NR=obj.GUIHandle.CurrentTrackingParameters.NucleusRadius;
                 Position=[Centroid(1)-NR/2,Centroid(2)-NR/2,NR,NR];
                 display(['Tracking track ', num2str(i)]);
-%                                 obj.Tracks.CurrentTrackID=i;
+%               obj.Tracks.CurrentTrackID=i;
 
-                obj.StartTrack(Position,obj.GUIHandle,memory);
+                obj.StartTrack(Position,obj.GUIHandle);
                 obj.Tracks.CurrentTrackID=i;
             end
         end
-        function StartTrack(obj,EventData,hTrackPad,memory)
+        function StartTrack(obj,EventData,hTrackPad)
             hTrackPad.ImageContextMenu.StartTrack.Visible='off';
             hTrackPad.ImageContextMenu.SelectTrack.Visible='off';
             Position=EventData;
@@ -87,8 +85,6 @@ classdef avatar< handle
             range=[hTrackPad.ImageStack.CurrentNdx,hTrackPad.ImageStack.NumberOfImages];
             %create an instance of the tracker object
             obj.Track=tracker(range,hEllipse,hTrackPad);
-            obj.Track.parameters.memory=memory;
-%             obj.Track.Tracks.parameters
             % set up a listener in tracker for events that occur in avatar
             obj.Track.CntrlObj=obj;
             %create a TrackCollection object if it doesn't already exist
@@ -267,8 +263,12 @@ classdef avatar< handle
         function SaveTracks(obj,src,evnt)
             CreateTable(obj.Tracks);
             tbl=obj.Tracks.tbl;
-            TrackFile=[obj.GUIHandle.TrackFile(1:end-4) '_r_' num2str(obj.CorrelationThreshold) ...
-                '_sr_' num2str(obj.SearchRadius) '_cr_' num2str(obj.NucleusRadius) '_mem_' num2str(length(obj.Memory)) '.mat'];
+            avatarpath=[obj.GUIHandle.TrackPath 'AvatarTracks\' obj.OptimisedParameter{:} '\'];
+            if ~isdir(avatarpath)
+            mkdir(obj.GUIHandle.TrackPath, ['AvatarTracks\' obj.OptimisedParameter{:}]);
+            end
+            TrackFile=[avatarpath obj.GUIHandle.TrackFile(1:end-4) '_r_' num2str(obj.CorrelationThreshold) ...
+                '_sr_' num2str(obj.SearchRadius) '_cr_' num2str(obj.NucleusRadius) '.mat'];
             CellProperties=obj.GUIHandle.CellProperties;
             save(TrackFile,'tbl','CellProperties','-v7.3');
         end
