@@ -330,6 +330,9 @@ classdef TrackPad < handle
                 uimenu(AnnotationDisplayMenuHandle,'Label',fnames{i},...
                     'Callback',{@obj.ChangeAnnotationDisplay,obj},'Tag','Change annotation display');
             end
+                        uimenu(AnnotationDisplayMenuHandle,'Label','None',...
+                    'Callback',{@obj.ChangeAnnotationDisplay,obj},'Tag','Change annotation display');
+            
             obj.AnnotationDisplay=fnames{1}; %set fluorescent annotation subsets by default
             
             %add optimisation menu
@@ -598,8 +601,9 @@ classdef TrackPad < handle
                         %                             set(Track{last}.AnnotationHandle,'Visible','off');
                         delete(Track{last}.AnnotationHandle);
                         %                         end
-                    end
-                    if ~isempty(Track{n}) && sum(n~=range)==2 %update annotations for all but first frame
+                    end                     
+                        
+                    if ~isempty(Track{n}) && sum(n~=range)==2 &&  ~strcmp(hTrackPad.AnnotationDisplay,'None') %update annotations for all but first frame
                         if isempty(Track{n}.AnnotationHandle)
                             x=Track{n}.Position(1,1)+Track{n}.Position(1,3)/2;
                             y=Track{n}.Position(1,2)+Track{n}.Position(1,4)/2;
@@ -626,7 +630,7 @@ classdef TrackPad < handle
                                 set(Track{n}.AnnotationHandle,'Color',[1,0,0]);
                             end
                         end
-                    elseif ~isempty(Track{n}) &&(n==range(1)|| n==range(2))%update annotations for first frame
+                    elseif ~isempty(Track{n}) &&(n==range(1)|| n==range(2))&&  ~strcmp(hTrackPad.AnnotationDisplay,'None')%update annotations for first frame
                         if isempty(Track{n}.AnnotationHandle)
                             x=Track{n}.Position(1,1)+Track{n}.Position(1,3)/2;
                             y=Track{n}.Position(1,2)+Track{n}.Position(1,4)/2;
@@ -1906,6 +1910,13 @@ classdef TrackPad < handle
                     annotationdisplayhandle(i).Checked='off';
                 end
             end
+            
+            if strcmp(EventData.Source.Label,'None')
+               
+               annotation_handles=findobj(gcf,'Type','Text');
+               delete(annotation_handles);
+            end
+            
         end
         
         function ChooseTrack(Object,EventData,hTrackPad)
@@ -1984,6 +1995,11 @@ classdef TrackPad < handle
                 if isdir(avatarpath)
                     rmdir(avatarpath,'s');
                 end
+                
+                %remove annotation text and set annotation to None
+                annotation_handles=findobj(gcf,'Type','Text');
+                delete(annotation_handles);
+                hTrackPad.AnnotationDisplay='None';
                 
                 %first optimise search radius by evaluating the precision
                 %with rho=0 (true positives/total outcomes)
