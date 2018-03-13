@@ -337,10 +337,9 @@ classdef TrackPad < handle
             
             %add optimisation menu
             OptimiseMenuHandle = uimenu(obj.FigureHandle,'Label','Optimise');
-            uimenu(OptimiseMenuHandle,'Label','Optimise rho',...
-                'Callback',{@obj.OptimiseRho,obj});
-            uimenu(OptimiseMenuHandle,'Label','Optimise search radius',...
-                'Callback',{@obj.OptimiseSearchRadius,obj});
+            uimenu(OptimiseMenuHandle,'Label','Run avatar optimisation',...
+                'Callback',{@obj.AvatarOptimisation,obj});
+
             
         end
         
@@ -1961,9 +1960,7 @@ classdef TrackPad < handle
         end
         
         
-        function OptimiseRho (Object,EventData,hTrackPad)
-            
-            disp('here');
+        function AvatarOptimisation (Object,EventData,hTrackPad)
            
             
             if length(hTrackPad.Tracks.Tracks)<5
@@ -2054,9 +2051,7 @@ classdef TrackPad < handle
                 
                 [TruthSet,ROCtbl]=AnalyseAvatarTracks(truthtable,avatartrackfiles,avatarpath);
                 [rho_optimum,~]=AnalyseROC(TruthSet,ROCtbl);
-                
-                
-                
+                               
                 %update tracking parameters 
                 
                  hTrackPad.CurrentTrackingParameters.CorrelationThreshold=rho_optimum;
