@@ -2016,7 +2016,7 @@ classdef TrackPad < handle
                 delete(Avatar1);
                 
                 for i=1:length(scan_rho)
-                    Avatar1=avatar(hTrackPad,hTrackPad.Tracks.tbl);
+                    Avatar1=avatar(hTrackPad,hTrackPad.Tracks.tbl,parameter);
                     Avatar1.SearchRadius=sr_optimum;
                     Avatar1.CorrelationThreshold=scan_rho(i);
                     Avatar1.SimulateTracking;
