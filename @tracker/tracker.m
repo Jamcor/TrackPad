@@ -130,7 +130,9 @@ classdef tracker < handle
                             end
                         end
                         
-                        set(obj.CurrentEllipse,'Visible','off'); 
+%                         set(obj.CurrentEllipse,'Visible','off'); 
+                        delete(obj.CurrentEllipse); 
+
                         
                         obj.CurrentEllipse=imellipse(obj.GUIHandle.ImageHandle.Parent,Result.pos);
                         setResizable(obj.CurrentEllipse,false);
@@ -145,6 +147,7 @@ classdef tracker < handle
                         SetCell(obj.Track{obj.Stack.CurrentNdx},Result.mask); % using the mask from findcell is more accurate and reliable
                         drawnow; % refresh screen
                         Result.FindCellState=obj.FindCellState; % update with find cell status (if cell found, remains in 'go' state)
+                        Result.mask=[];
                         obj.Track{obj.Stack.CurrentNdx}.Result=Result;
                         setmemory(obj);
                         if obj.Interrupt
