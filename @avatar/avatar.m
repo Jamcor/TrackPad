@@ -235,6 +235,7 @@ classdef avatar< handle
                 ChangeInRows=round(ChangeInPosition(2));
                 ChangeInCols=round(ChangeInPosition(1));
                 [r,c]=find(src.Track{FrameID}.Mask);
+%                [r,c]=find(src.Track{FrameID}.Result.mask); %use mask from Result instead
                 src.Track{FrameID}.Mask=false(size(src.Track{FrameID}.Mask));
                 src.Track{FrameID}.Mask(r+ChangeInRows,c+ChangeInCols)=true;
                 src.parameters.lastmask=src.Track{FrameID}.Mask;
