@@ -216,7 +216,7 @@ classdef TrackTable < handle
             maxclones=length(allclones);
             %             tracknumb=hTrackTable.PedigreeData;
             timestamps=hTrackTable.CntrlObj.ImageStack.AcquisitionTimes;
-            maxtracks=max(hTrackTable.TableData.Progeny_ID);
+            maxtracks=max([hTrackTable.TableData.Progeny_ID{:}]);
             
             pathname=uigetdir('Select directory to save images');
             

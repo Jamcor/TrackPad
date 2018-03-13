@@ -1982,7 +1982,7 @@ classdef TrackPad < handle
                 %delete existing avatar track files if they exist
                 avatarpath=[hTrackPad.TrackPath 'AvatarTracks'];
                 if isdir(avatarpath)
-                    rmdir(avatarpath,'s');
+                    rmdir(avatarpath);
                 end
                 
                 %first optimise search radius by evaluating the precision
