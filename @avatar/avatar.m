@@ -33,9 +33,9 @@ classdef avatar< handle
         function set.Track(obj,value)
             obj.Track=value;
             if ~isempty(obj.Track)
-                addlistener(value,'LostCellEvent',@obj.listenLostCellEvent);
-                addlistener(value,'EndOfTrackEvent',@obj.listenEndOfTrackEvent);
-                addlistener(value,'TrackEvent',@obj.listenTrackEvent);
+                obj.Track.LostCellListener=event.listener(value,'LostCellEvent',@obj.listenLostCellEvent);
+                obj.Track.EndTrackListener=event.listener(value,'EndOfTrackEvent',@obj.listenEndOfTrackEvent);
+                obj.Track.TrackEventListener=event.listener(value,'TrackEvent',@obj.listenTrackEvent);
             end
         end
         function SimulateTracking(obj)
@@ -147,6 +147,10 @@ classdef avatar< handle
             obj.Tracks.Tracks(TrackID).Track=obj.Track;
             obj.Tracks.Tracks(TrackID).ParentID=obj.GUIHandle.Tracks.Tracks(TrackID).ParentID;
             obj.Tracks.Tracks(TrackID).Parent=obj.GUIHandle.Tracks.Tracks(TrackID).Parent;
+            %delete listeners
+%             delete(obj.Track.LostCellListener);
+%             delete(obj.Track.TrackEventListener);
+%             delete(obj.Track.EndTrackListener);
         end
         function listenLostCellEvent(obj,src,evnt)
             % obj - instance of this class
@@ -235,6 +239,7 @@ classdef avatar< handle
                 ChangeInRows=round(ChangeInPosition(2));
                 ChangeInCols=round(ChangeInPosition(1));
                 [r,c]=find(src.Track{FrameID}.Mask);
+%                [r,c]=find(src.Track{FrameID}.Result.mask); %use mask from Result instead
                 src.Track{FrameID}.Mask=false(size(src.Track{FrameID}.Mask));
                 src.Track{FrameID}.Mask(r+ChangeInRows,c+ChangeInCols)=true;
                 src.parameters.lastmask=src.Track{FrameID}.Mask;

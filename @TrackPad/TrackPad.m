@@ -333,14 +333,13 @@ classdef TrackPad < handle
                         uimenu(AnnotationDisplayMenuHandle,'Label','None',...
                     'Callback',{@obj.ChangeAnnotationDisplay,obj},'Tag','Change annotation display');
             
-            obj.AnnotationDisplay=fnames{1}; %set fluorescent annotation subsets by default
+            obj.AnnotationDisplay='None'; %set fluorescent annotation subsets by default
             
             %add optimisation menu
             OptimiseMenuHandle = uimenu(obj.FigureHandle,'Label','Optimise');
-            uimenu(OptimiseMenuHandle,'Label','Optimise rho',...
-                'Callback',{@obj.OptimiseRho,obj});
-            uimenu(OptimiseMenuHandle,'Label','Optimise search radius',...
-                'Callback',{@obj.OptimiseSearchRadius,obj});
+            uimenu(OptimiseMenuHandle,'Label','Run avatar optimisation',...
+                'Callback',{@obj.AvatarOptimisation,obj});
+
             
         end
         
@@ -362,14 +361,14 @@ classdef TrackPad < handle
         function set.Track(obj,value)
             obj.Track=value;
             if ~isempty(obj.Track)
-                addlistener(value,'LostCellEvent',@obj.listenLostCellEvent);
-                addlistener(value,'EndOfTrackEvent',@obj.listenEndOfTrackEvent);
+              obj.Track.LostCellListener=event.listener(value,'LostCellEvent',@obj.listenLostCellEvent);
+              obj.Track.EndTrackListener=event.listener(value,'EndOfTrackEvent',@obj.listenEndOfTrackEvent);
             end
         end
-        function set.Tracks(obj,value)
-            obj.Tracks=value;
-            addlistener(value,'AppendedTrackEvent',@obj.listenAppendedTrackEvent);
-        end
+%         function set.Tracks(obj,value)
+%             obj.Tracks=value;
+%             addlistener(value,'AppendedTrackEvent',@obj.listenAppendedTrackEvent);
+%         end
         function listenLostCellEvent(obj,src,evnt)
             % obj - instance of this class
             % src - object generating event
@@ -393,9 +392,9 @@ classdef TrackPad < handle
             obj.ImageContextMenu.DeleteTrack.Visible='on';
             disp('End of Track Event');
         end
-        function listenAppendedTrackEvent(obj,src,~)
-            obj.ImageContextMenu.StartTrack.Visible='on';
-        end
+%         function listenAppendedTrackEvent(obj,src,~)
+%             obj.ImageContextMenu.StartTrack.Visible='on';
+%         end
     end
     
     methods (Static=true)
@@ -709,9 +708,14 @@ classdef TrackPad < handle
             %append track to TrackCollection object
             if ~hTrackPad.Tracks.CurrentTrackID
                 hTrackPad.Tracks.Append;
+                hTrackPad.ImageContextMenu.StartTrack.Visible='on';
+
                 hTrackPad.Track=[];% no longer can be edited
                 hellipse=findall(gca,'Tag','imellipse');%remove ellipse
                 delete(hellipse);
+%                 hTrackPad.Tracks=
+                %delete listeners
+                
             else % selected existing track for editing
                 hTrackPad.Tracks.Tracks(hTrackPad.Tracks.CurrentTrackID).Track=hTrackPad.Track;
                 hTrackPad.Track=[];% no longer can be edited
@@ -1211,11 +1215,12 @@ classdef TrackPad < handle
         end
         
         function OpenTracks(hObject,EventData,hTrackPad)
+            
             [FileName,PathName,FilterIndex] = uigetfile('*.mat','Get track table');
             s=load([PathName,FileName]);
             hTrackPad.CellProperties=s.CellProperties;
             fnames=fieldnames(hTrackPad.CellProperties(3).Type);
-            hTrackPad.AnnotationDisplay=fnames{1}; %set fluo annotation as default when loading tracks
+            hTrackPad.AnnotationDisplay='PedigreeID'; %set pedigree annotation as default when loading tracks
             if isa(hTrackPad.Tracks,'TrackCollection')
                 
                 %reset axes if tracks are loaded when the GUI is zoomed in
@@ -1229,6 +1234,7 @@ classdef TrackPad < handle
                 %Track collection already exists .... overwrite
                 button=questdlg('Delete current tracks?','Load tracks');
                 if strcmp(button,'Yes')
+                    tic;
                     delete(hTrackPad.Tracks);
                     d=findobj('Tag','imrect');
                     delete(d); % delete all ellipses
@@ -1244,9 +1250,12 @@ classdef TrackPad < handle
                     for i=1:length(hTrackPad.Tracks.Tracks)
                         Track=hTrackPad.Tracks.Tracks(i).Track.Track;
                         if ~isempty(Track{1})
-                            if ~isempty(Track{1}.AnnotationHandle)
-                                set(Track{1}.AnnotationHandle,'Color',[0,1,0],'Visible','on','Clipping','on');
-                            end
+                            x=Track{1}.Position(1,1)+Track{1}.Position(1,3)/2;
+                            y=Track{1}.Position(1,2)+Track{1}.Position(1,4)/2;
+                            Track{1}.AnnotationHandle=text(x,y,...
+                                Track{1}.Annotation.Symbol,...
+                                'HorizontalAlignment','center','PickableParts','none',...
+                                'Clipping','on','FontAngle','oblique','Visible','on','Color','g');
                         end
                     end
                     
@@ -1256,6 +1265,7 @@ classdef TrackPad < handle
                     hTrackPad.TrackPanel.ClonesPopup.String=clones;
                 end
             else
+                tic;
                 hTrackPad.TrackFile=FileName;
                 hTrackPad.TrackPath=PathName;
                 hTrackPad.Tracks=TrackCollection;
@@ -1279,6 +1289,7 @@ classdef TrackPad < handle
                 clones=arrayfun(@(x) ['Pedigree ' num2str(x)],clones,'UniformOutput',0);
                 hTrackPad.TrackPanel.ClonesPopup.String=clones;
             end
+            toc;
         end
         
         function SaveTracks(hObject,EventData,hTrackPad)
@@ -1961,13 +1972,11 @@ classdef TrackPad < handle
         end
         
         
-        function OptimiseRho (Object,EventData,hTrackPad)
-            
-            disp('here');
+        function AvatarOptimisation (Object,EventData,hTrackPad)
            
             
             if length(hTrackPad.Tracks.Tracks)<5
-                errordlg('Minimum of 5 tracks required for optimisation');
+                errordlg('Minimum of 6 tracks required for optimisation');
                 uiwait();
             else
                 
@@ -2011,6 +2020,7 @@ classdef TrackPad < handle
                     Avatar1.SimulateTracking;
                     Avatar1.SaveTracks;
                     delete(Avatar1);
+                    clear Avatar1;
                 end
                 
                 
@@ -2054,9 +2064,7 @@ classdef TrackPad < handle
                 
                 [TruthSet,ROCtbl]=AnalyseAvatarTracks(truthtable,avatartrackfiles,avatarpath);
                 [rho_optimum,~]=AnalyseROC(TruthSet,ROCtbl);
-                
-                
-                
+                               
                 %update tracking parameters 
                 
                  hTrackPad.CurrentTrackingParameters.CorrelationThreshold=rho_optimum;

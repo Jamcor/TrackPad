@@ -24,6 +24,11 @@ classdef tracker < handle
         
         %listens to the following objects
         CntrlObj
+        StopListenerHandle
+        PauseListenerHandle
+        LostCellListener
+        EndTrackListener
+        TrackEventListener
     end
     
     events
@@ -43,6 +48,8 @@ classdef tracker < handle
             % hellipse is the start ellipse
             obj.Stack=GUIHandle.ImageStack;
             obj.CntrlObj=GUIHandle;
+            obj.StopListenerHandle=event.listener(obj.CntrlObj,'StopEvent',@obj.listenStopEvent);
+            obj.PauseListenerHandle=event.listener(obj.CntrlObj,'PauseEvent',@obj.listenPauseEvent);
             if sum(range>obj.Stack.NumberOfImages) 
                 error('Range outside of ImageStack');
             end
@@ -130,7 +137,9 @@ classdef tracker < handle
                             end
                         end
                         
-                        set(obj.CurrentEllipse,'Visible','off'); 
+%                         set(obj.CurrentEllipse,'Visible','off'); 
+                        delete(obj.CurrentEllipse); 
+
                         
                         obj.CurrentEllipse=imellipse(obj.GUIHandle.ImageHandle.Parent,Result.pos);
                         setResizable(obj.CurrentEllipse,false);
@@ -145,6 +154,7 @@ classdef tracker < handle
                         SetCell(obj.Track{obj.Stack.CurrentNdx},Result.mask); % using the mask from findcell is more accurate and reliable
                         drawnow; % refresh screen
                         Result.FindCellState=obj.FindCellState; % update with find cell status (if cell found, remains in 'go' state)
+                        Result.mask=[];
                         obj.Track{obj.Stack.CurrentNdx}.Result=Result;
                         setmemory(obj);
                         if obj.Interrupt
@@ -187,11 +197,13 @@ classdef tracker < handle
             save(FileName,'tr');
         end
         
-        function set.CntrlObj(obj,value)
-            obj.CntrlObj=value;
-            addlistener(value,'StopEvent',@obj.listenStopEvent);
-            addlistener(value,'PauseEvent',@obj.listenPauseEvent);
-        end
+%         function set.CntrlObj(obj,value)
+%             obj.CntrlObj=value;
+% %             addlistener(value,'StopEvent',@obj.listenStopEvent);
+% %             addlistener(value,'PauseEvent',@obj.listenPauseEvent);
+%             obj.StopListenerHandle=event.listener(value,'StopEvent',@obj.listenStopEvent);
+%             obj.PauseListenerHandle=event.listener(value,'PauseEvent',@obj.listenPauseEvent);
+%         end
         
         
         

@@ -69,6 +69,7 @@ classdef CellImage < handle
                 obj.Position=obj.ParentTracker.parameters.startrectangle;
             else % supply mask instead of ellipse (more accurate)
                 obj.Mask=mask;
+%                 obj.Mask=[]; %cell mask is also stored in obj.Result
                 obj.ParentTracker.parameters.startrectangle=obj.Position;
                 n=obj.ParentTracker.GUIHandle.ImageStack.CurrentNdx;
                 Im=squeeze(obj.ParentTracker.GUIHandle.ImageStack.Stack(:,:,1,n));
@@ -124,13 +125,13 @@ classdef CellImage < handle
             obj.CellIm=Im(rows,cols,:);
             obj.Position=obj.ParentTracker.parameters.startrectangle;
         end   
-        function set.CntrlObj(obj,value)
-            obj.CntrlObj=value;
-            addlistener(value,'HideEllipseEvent',@obj.listenHideEllipseEvent);
-            addlistener(value,'ShowEllipseEvent',@obj.listenShowEllipseEvent);
-            addlistener(value,'HideSymbolEvent',@obj.listenHideSymbolEvent);
-            addlistener(value,'ShowSymbolEvent',@obj.listenShowSymbolEvent);
-        end
+%         function set.CntrlObj(obj,value)
+%             obj.CntrlObj=value;
+%             addlistener(value,'HideEllipseEvent',@obj.listenHideEllipseEvent);
+%             addlistener(value,'ShowEllipseEvent',@obj.listenShowEllipseEvent);
+%             addlistener(value,'HideSymbolEvent',@obj.listenHideSymbolEvent);
+%             addlistener(value,'ShowSymbolEvent',@obj.listenShowSymbolEvent);
+%         end
         function listenHideEllipseEvent(obj,src,evnt)
             % obj - instance of this class
              % src - object generating event

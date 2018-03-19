@@ -32,6 +32,8 @@ classdef TrackCollection < handle
             CurrentNdx=hTrackPad.ImageStack.CurrentNdx;
             if isempty(obj.Tracks)
                 obj.Tracks(1).Track=obj.CurrentTrack;
+                delete(obj.Tracks(1).Track.StopListenerHandle);
+                delete(obj.Tracks(1).Track.PauseListenerHandle);
                 %default annotation
                 n=find(cellfun(@(x) ~isempty(x),obj.Tracks(1).Track.Track),1,'first'); %find first and last frame
                 m=find(cellfun(@(x) ~isempty(x),obj.Tracks(1).Track.Track),1,'last');
@@ -60,6 +62,7 @@ classdef TrackCollection < handle
                 end
                 obj.Tracks(1).Parent=[]; % no parent at this stage
                 obj.Tracks(1).ParentID=[];
+%                 obj.Tracks(1).
                 obj.Tracks(1).Track.trackrange=[n,m];
                 % Annotate all other timepoints as NA (No Annotation)
                 fnames=fieldnames(hTrackPad.CellProperties(3).Type);
@@ -86,6 +89,8 @@ classdef TrackCollection < handle
             else
                 %default annotation
                 obj.Tracks(end+1).Track=obj.CurrentTrack;
+                delete(obj.Tracks(end).Track.PauseListenerHandle);
+                delete(obj.Tracks(end).Track.StopListenerHandle);
                 n=find(cellfun(@(x) ~isempty(x),obj.Tracks(end).Track.Track),1,'first');
                 m=find(cellfun(@(x) ~isempty(x),obj.Tracks(end).Track.Track),1,'last');
                 obj.Tracks(end).Track.trackrange=[n,m];
@@ -168,13 +173,7 @@ classdef TrackCollection < handle
             obj.CurrentTrackID=0;
             obj.CurrentTrack=[];
         end
-        
-        function set.CntrlObj(obj,value)
-            obj.CntrlObj=value;
-            addlistener(value,'StopEvent',@obj.listenStopEvent);
-            addlistener(value,'PauseEvent',@obj.listenPauseEvent);
-        end
-        
+               
         function CreateTracks(obj,hObject,EventData)
             beep off;
             if ~isa(obj.CntrlObj.ImageStack,'ImageStack')
@@ -183,6 +182,7 @@ classdef TrackCollection < handle
             NumberOfImages=obj.CntrlObj.ImageStack.NumberOfImages;
             h=waitbar(0,'Loading tracks','WindowStyle','Modal');
             fnames=fieldnames(obj.CntrlObj.CellProperties(3).Type);
+            obj.CntrlObj.AnnotationDisplay='None'; %turn off annotations for loading tracks
             for i=1:height(obj.tbl)
                 % create track
                 waitbar(i/height(obj.tbl),h);
@@ -207,6 +207,11 @@ classdef TrackCollection < handle
                 obj.CntrlObj.CurrentTrackingParameters.SearchRadius=obj.tbl.SearchRadius{i};
                 obj.CntrlObj.CurrentTrackingParameters.CorrelationThreshold=obj.tbl.CorrelationThreshold{i};
                 obj.CntrlObj.Track=tracker(range,hellipse,obj.CntrlObj);
+                %delete listeners (track won't be modified)
+                delete(obj.CntrlObj.Track.EndTrackListener);
+                delete(obj.CntrlObj.Track.LostCellListener);
+                delete(obj.CntrlObj.Track.StopListenerHandle);
+                delete(obj.CntrlObj.Track.PauseListenerHandle);
                 obj.CntrlObj.ImageStack.CurrentNdx=range(1); %get first frames that cell is present
                 obj.CntrlObj.Track.FindCellState='stop'; % don't allow editing of saved tracks
                 % obj.CntrlObj.Track.Track{range(1)}.Mask=Mask(:,:,1);
@@ -215,11 +220,11 @@ classdef TrackCollection < handle
                 obj.CntrlObj.Track.Track{range(1)}.ImageNumber=Image_Number(1);
                 obj.CntrlObj.Track.Track{range(1)}.Position=Position(1,:);
                 obj.CntrlObj.Track.Track{range(1)}.Annotation=Annotation(1);
-                x=Position(1,1)+Position(1,3)/2;
-                y=Position(1,2)+Position(1,4)/2;
-                obj.CntrlObj.Track.Track{range(1)}.AnnotationHandle=text(x,y,...
-                    obj.CntrlObj.Track.Track{range(1)}.Annotation.Symbol,'Color','g',...
-                    'HorizontalAlignment','center','PickableParts','none');
+%                 x=Position(1,1)+Position(1,3)/2;
+%                 y=Position(1,2)+Position(1,4)/2;
+%                 obj.CntrlObj.Track.Track{range(1)}.AnnotationHandle=text(x,y,...
+%                     obj.CntrlObj.Track.Track{range(1)}.Annotation.Symbol,'Color','g',...
+%                     'HorizontalAlignment','center','PickableParts','none');
                 delete(hellipse);
                 for j=1:(range(2)-range(1))
 %                     hellipse=imellipse(obj.CntrlObj.ImageHandle.Parent,Position(j+1,:));
@@ -235,8 +240,8 @@ classdef TrackCollection < handle
                     obj.CntrlObj.Track.Track{range(1)+j}.ImageNumber=Image_Number(j+1);
                     obj.CntrlObj.Track.Track{range(1)+j}.Position=Position(j+1,:);
                     obj.CntrlObj.Track.Track{range(1)+j}.Annotation=Annotation(j+1);
-                    x=Position(j+1,1)+Position(j+1,3)/2;
-                    y=Position(j+1,2)+Position(j+1,4)/2;
+%                     x=Position(j+1,1)+Position(j+1,3)/2;
+%                     y=Position(j+1,2)+Position(j+1,4)/2;
 %                     if (j+range(1))<range(2)
 %                         obj.CntrlObj.Track.Track{range(1)+j}.AnnotationHandle=text(x,y,...
 %                             obj.CntrlObj.Track.Track{range(1)+j}.Annotation.Symbol.(fnames{1}),'Color','g',...
@@ -379,19 +384,7 @@ classdef TrackCollection < handle
             close(h);
         end
         
-        
-        
-        function listenStopEvent(obj,src,evnt)
-            % obj - instance of this class
-            % src - object generating event
-            %  evnt - the event data
             
-        end
-        
-        function listenPauseEvent(obj,src,evnt)
-            
-        end
-        
         
         
         function gather(obj)
