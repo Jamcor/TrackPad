@@ -742,7 +742,7 @@ classdef TrackPad < handle
             hTrackPad.ImageContextMenu.Cancel.Visible='on'; %cancel
             hTrackPad.ImageContextMenu.ReturnToStart.Visible='off'; %return to start
             hTrackPad.ImageContextMenu.GoToEnd.Visible='off'; %go to end
-            
+            hTrackPad.AnnotationDisplay='PedigreeID'; %turn on pedigree annotations
             n=length(hTrackPad.Tracks.Tracks);
             m=hTrackPad.ImageStack.CurrentNdx; % make all tracks in current frame selectable
             for i=1:n
