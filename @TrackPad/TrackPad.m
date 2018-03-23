@@ -581,27 +581,21 @@ classdef TrackPad < handle
             
         end
         
-        function DisplayAnnotation(hObject,EventData,hTrackPad)
+        function DisplayAnnotation(~,~,hTrackPad)
             %figure(hTrackPad.FigureHandle);
-            currentrackid=hTrackPad.Tracks.CurrentTrackID;
             n=hTrackPad.ImageStack.CurrentNdx;
             last=hTrackPad.ImageStack.LastNdx;
             fnames=fieldnames(hTrackPad.CellProperties(3).Type);
             subsetdisplay=hTrackPad.AnnotationDisplay;
             if (n~=last)
-                % update Stored Tracks
-                m=length(hTrackPad.Tracks.Tracks);
+              %switch off last annotations
+              annotation_handles=findobj(gcf,'Type','Text');
+              delete(annotation_handles);
+              % update Stored Tracks
+              m=length(hTrackPad.Tracks.Tracks);
                 for i=1:m
                     Track=hTrackPad.Tracks.Tracks(i).Track.Track;
                     range=hTrackPad.Tracks.Tracks(i).Track.trackrange;
-                    %switch off last annotations
-                    if ~isempty(Track{last})
-                        %                         if ~isempty(Track{last}.AnnotationHandle)
-                        %                             set(Track{last}.AnnotationHandle,'Visible','off');
-                        delete(Track{last}.AnnotationHandle);
-                        %                         end
-                    end                     
-                        
                     if ~isempty(Track{n}) && sum(n~=range)==2 &&  ~strcmp(hTrackPad.AnnotationDisplay,'None') %update annotations for all but first frame
                         if isempty(Track{n}.AnnotationHandle)
                             x=Track{n}.Position(1,1)+Track{n}.Position(1,3)/2;
@@ -610,9 +604,9 @@ classdef TrackPad < handle
                                 Track{n}.Annotation.Symbol.(subsetdisplay),...
                                 'HorizontalAlignment','center','PickableParts','none',...
                                 'Clipping','on','FontAngle','oblique');
-                            if i~=currentrackid
+                            if i~=hTrackPad.Tracks.CurrentTrackID
                                 set(Track{n}.AnnotationHandle,'Color',[0,1,0]);
-                            elseif i==currentrackid
+                            elseif i==hTrackPad.Tracks.CurrentTrackID
                                 set(Track{n}.AnnotationHandle,'Color',[1,0,0]);
                             end
                         else
@@ -623,9 +617,9 @@ classdef TrackPad < handle
                                 'HorizontalAlignment','center','PickableParts','none',...
                                 'Clipping','on','FontAngle','oblique','Visible','on');
                             %Track{n}.AnnotationHandle.String=Track{n}.Annotation.Symbol.(subsetdisplay);
-                            if i~=currentrackid
+                            if i~=hTrackPad.Tracks.CurrentTrackID
                                 set(Track{n}.AnnotationHandle,'Color',[0,1,0]);
-                            elseif i==currentrackid
+                            elseif i==hTrackPad.Tracks.CurrentTrackID
                                 set(Track{n}.AnnotationHandle,'Color',[1,0,0]);
                             end
                         end
@@ -637,9 +631,9 @@ classdef TrackPad < handle
                                 Track{n}.Annotation.Symbol,...
                                 'HorizontalAlignment','center','PickableParts','none',...
                                 'Clipping','on','FontAngle','oblique');
-                            if i~=currentrackid
+                            if i~=hTrackPad.Tracks.CurrentTrackID
                                 set(Track{n}.AnnotationHandle,'Color',[0,1,0]);
-                            elseif i==currentrackid
+                            elseif i==hTrackPad.Tracks.CurrentTrackID
                                 set(Track{n}.AnnotationHandle,'Color',[1,0,0]);
                             end
                         else
@@ -650,9 +644,9 @@ classdef TrackPad < handle
                                 'HorizontalAlignment','center','PickableParts','none',...
                                 'Clipping','on','FontAngle','oblique');
                             set(Track{n}.AnnotationHandle,'Visible','on','Clipping','on');
-                            if i~=currentrackid
+                            if i~=hTrackPad.Tracks.CurrentTrackID
                                 set(Track{n}.AnnotationHandle,'Color',[0,1,0]);
-                            elseif i==currentrackid
+                            elseif i==hTrackPad.Tracks.CurrentTrackID
                                 set(Track{n}.AnnotationHandle,'Color',[1,0,0]);
                             end
                         end
@@ -742,17 +736,36 @@ classdef TrackPad < handle
             hTrackPad.ImageContextMenu.Cancel.Visible='on'; %cancel
             hTrackPad.ImageContextMenu.ReturnToStart.Visible='off'; %return to start
             hTrackPad.ImageContextMenu.GoToEnd.Visible='off'; %go to end
-            hTrackPad.AnnotationDisplay='PedigreeID'; %turn on pedigree annotations
-            n=length(hTrackPad.Tracks.Tracks);
-            m=hTrackPad.ImageStack.CurrentNdx; % make all tracks in current frame selectable
-            for i=1:n
-                if ~isempty(hTrackPad.Tracks.Tracks(i).Track.Track{m})
-                    hAnnotation=hTrackPad.Tracks.Tracks(i).Track.Track{m}.AnnotationHandle;
-                    set(hAnnotation,'PickableParts','all');
-                    set(hAnnotation,'ButtonDownFcn',{@hTrackPad.getAnnotationInfo,...
-                        i,hTrackPad.Tracks});
-                end
+                                 
+            if strcmp(hTrackPad.AnnotationDisplay,'None')
+%                 annotation_handles=findobj(gcf,'Type','Text');
+%                 delete(annotation_handles);
+                hTrackPad.AnnotationDisplay='PedigreeID'; %turn on pedigree annotations
             end
+                n=length(hTrackPad.Tracks.Tracks);
+                m=hTrackPad.ImageStack.CurrentNdx; % make all tracks in current frame selectable
+                for i=1:n
+                    if ~isempty(hTrackPad.Tracks.Tracks(i).Track.Track{m})  
+                        x=hTrackPad.Tracks.Tracks(i).Track.Track{m}.Position(1,1)+hTrackPad.Tracks.Tracks(i).Track.Track{m}.Position(1,3)/2;
+                        y=hTrackPad.Tracks.Tracks(i).Track.Track{m}.Position(1,2)+hTrackPad.Tracks.Tracks(i).Track.Track{m}.Position(1,4)/2;
+                        if (m==hTrackPad.Tracks.Tracks(i).Track.trackrange(1)|| m==hTrackPad.Tracks.Tracks(i).Track.trackrange(2))
+                            hTrackPad.Tracks.Tracks(i).Track.Track{m}.AnnotationHandle=text(x,y,...
+                                hTrackPad.Tracks.Tracks(i).Track.Track{m}.Annotation.Symbol,...
+                                'HorizontalAlignment','center','PickableParts','all',...
+                                'Clipping','on','FontAngle','oblique','Visible','On','Color','g');
+                        elseif sum(m~=hTrackPad.Tracks.Tracks(i).Track.trackrange)==2
+                            hTrackPad.Tracks.Tracks(i).Track.Track{m}.AnnotationHandle=text(x,y,...
+                                hTrackPad.Tracks.Tracks(i).Track.Track{m}.Annotation.Symbol.(hTrackPad.AnnotationDisplay),...
+                                'HorizontalAlignment','center','PickableParts','all',...
+                                'Clipping','on','FontAngle','oblique','Visible','On','Color','g');
+                        end
+                        hAnnotation=hTrackPad.Tracks.Tracks(i).Track.Track{m}.AnnotationHandle;
+                        %                     set(hAnnotation,'PickableParts','all','Visible','On');
+                        set(hAnnotation,'ButtonDownFcn',{@hTrackPad.getAnnotationInfo,...
+                            i,hTrackPad.Tracks});
+                    end
+                end           
+            
             hTrackPad.ImageContextMenu.DeleteTrack.Visible='off';
             hTrackPad.ImageContextMenu.AnnotateTrack.Visible='off';
             hTrackPad.ImageContextMenu.Reposition.Visible='off';
@@ -1922,10 +1935,40 @@ classdef TrackPad < handle
                 end
             end
             
-            if strcmp(EventData.Source.Label,'None')
-               
+            if strcmp(EventData.Source.Label,'None')               
                annotation_handles=findobj(gcf,'Type','Text');
                delete(annotation_handles);
+            elseif ~strcmp(EventData.Source.Label,'None')
+               annotation_handles=findobj(gcf,'Type','Text');
+               delete(annotation_handles);   
+               n=length(hTrackPad.Tracks.Tracks);
+               m=hTrackPad.ImageStack.CurrentNdx;
+               
+               for i=1:n
+                   if ~isempty(hTrackPad.Tracks.Tracks(i).Track.Track{m})
+                    x=hTrackPad.Tracks.Tracks(i).Track.Track{m}.Position(1,1)+hTrackPad.Tracks.Tracks(i).Track.Track{m}.Position(1,3)/2;
+                    y=hTrackPad.Tracks.Tracks(i).Track.Track{m}.Position(1,2)+hTrackPad.Tracks.Tracks(i).Track.Track{m}.Position(1,4)/2;
+                    if m==1
+                    hTrackPad.Tracks.Tracks(i).Track.Track{m}.AnnotationHandle=text(x,y,...
+                                hTrackPad.Tracks.Tracks(i).Track.Track{m}.Annotation.Symbol,...
+                                'HorizontalAlignment','center','PickableParts','none',...
+                                'Clipping','on','FontAngle','oblique','Visible','On','Color','g');                        
+                    elseif m>1
+                    hTrackPad.Tracks.Tracks(i).Track.Track{m}.AnnotationHandle=text(x,y,...
+                                hTrackPad.Tracks.Tracks(i).Track.Track{m}.Annotation.Symbol.(hTrackPad.AnnotationDisplay),...
+                                'HorizontalAlignment','center','PickableParts','none',...
+                                'Clipping','on','FontAngle','oblique','Visible','On','Color','g');
+                    end
+                    
+                    if i~=hTrackPad.Tracks.CurrentTrackID
+                        set(hTrackPad.Tracks.Tracks(i).Track.Track{m}.AnnotationHandle,'Color',[0,1,0],'PickableParts','all');
+                     elseif i==hTrackPad.Tracks.CurrentTrackID
+                        set(hTrackPad.Tracks.Tracks(i).Track.Track{m}.AnnotationHandle,'Color',[1,0,0],'PickableParts','all');
+                     end
+                    end
+                   
+               end
+               
             end
             
         end
