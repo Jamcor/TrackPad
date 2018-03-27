@@ -1273,7 +1273,7 @@ classdef TrackPad < handle
                     end
                     
                     %update track panel
-                    clones=unique(hTrackPad.Tracks.TableData.Ancestor_ID);
+                    clones=unique([hTrackPad.Tracks.TableData.Ancestor_ID{:}]);
                     clones=arrayfun(@(x) ['Pedigree ' num2str(x)],clones,'UniformOutput',0);
                     hTrackPad.TrackPanel.ClonesPopup.String=clones;
                 end
@@ -1298,7 +1298,7 @@ classdef TrackPad < handle
                 end
                 
                 %update track panel
-                clones=unique(hTrackPad.Tracks.TableData.Ancestor_ID);
+                clones=unique([hTrackPad.Tracks.TableData.Ancestor_ID{:}]);
                 clones=arrayfun(@(x) ['Pedigree ' num2str(x)],clones,'UniformOutput',0);
                 hTrackPad.TrackPanel.ClonesPopup.String=clones;
             end
@@ -1404,8 +1404,8 @@ classdef TrackPad < handle
                         n=find(cellfun(@(x) ~isempty(x),hTrackPad.Tracks.Tracks(h).Track.Track),1,'first');
                         m=find(cellfun(@(x) ~isempty(x),hTrackPad.Tracks.Tracks(h).Track.Track),1,'last');
                         %update annotations
-                        pedigree_id=hTrackPad.Tracks.TableData.Ancestor_ID(h);
-                        progeny_id=hTrackPad.Tracks.TableData.Progeny_ID(h);
+                        pedigree_id=hTrackPad.Tracks.TableData.Ancestor_ID{h};
+                        progeny_id=hTrackPad.Tracks.TableData.Progeny_ID{h};
                         for i=(n+1):(m-1)
                             hTrackPad.Tracks.Tracks(h).Track.Track{i}.Annotation.Type.PedigreeID=['Pedigree ' num2str(pedigree_id) ' Track ' num2str(progeny_id)];
                             hTrackPad.Tracks.Tracks(h).Track.Track{i}.Annotation.Symbol.PedigreeID=['P' num2str(pedigree_id) 'Tr' num2str(progeny_id)];
@@ -1413,7 +1413,7 @@ classdef TrackPad < handle
                     end
                     
                     %update track panel
-                    clones=unique(hTrackPad.Tracks.TableData.Ancestor_ID);
+                    clones=unique([hTrackPad.Tracks.TableData.Ancestor_ID{:}]);
                     clones=arrayfun(@(x) ['Pedigree ' num2str(x)],clones,'UniformOutput',0);
                     hTrackPad.TrackPanel.ClonesPopup.String=clones;
                 end
@@ -1771,7 +1771,7 @@ classdef TrackPad < handle
                         CellTrackCollection.CurrentTrackID=TrackID;
                         PedigreeID=hTrackPad.Tracks.TableData.Ancestor_ID(i);
                         ProgenyID=hTrackPad.Tracks.TableData.Progeny_ID(i);
-                        displaystring={['Pedigree ' num2str(PedigreeID)] ['Track ' num2str(ProgenyID)]};
+                        displaystring={['Pedigree ' num2str(PedigreeID{:})] ['Track ' num2str(ProgenyID{:})]};
                         displaystring=textwrap(hTrackPad.TrackPanel.CurrentTrackDisplay,displaystring);
                         hTrackPad.TrackPanel.CurrentTrackDisplay.String=displaystring;
                         hTrackPad.TrackPanel.CurrentTrackDisplay.ForegroundColor='green';
@@ -1815,7 +1815,7 @@ classdef TrackPad < handle
             hTrackPad.Tracks.TableData=SubTable(hTrackPad.Tracks); %update tabledata
             
             %update track panel
-            clones=unique(hTrackPad.Tracks.TableData.Ancestor_ID);
+            clones=unique([hTrackPad.Tracks.TableData.Ancestor_ID{:}]);
             clones=arrayfun(@(x) ['Pedigree ' num2str(x)],clones,'UniformOutput',0);
             hTrackPad.TrackPanel.ClonesPopup.String=clones;
         end
@@ -1912,14 +1912,15 @@ classdef TrackPad < handle
         
         
         function openTrackTable(Object,EventData,hTrackPad)
+%             CreateTable(hTrackPad.Tracks);
             hTrackPad.TrackTable=TrackTable;
             hTrackPad.TrackTable.CntrlObj=hTrackPad;
+            hTrackPad.TrackTable.TableData=SubTable(hTrackPad.Tracks);
 %             hTrackPad.TrackTable.TableData=hTrackPad.Tracks.TableData;
-            hTrackPad.TrackTable.TableData=CreateSubTable(hTrackPad.Tracks.tbl);
-            pedigreestructure=CreateCloneFiles(hTrackPad.TrackTable.TableData,hTrackPad.Tracks.tbl,...
-                hTrackPad.ImageStack.AcquisitionTimes);
-            hTrackPad.TrackTable.PedigreeData=pedigreestructure;
-            %             hTrackPad.TrackTable.Tracks=SubTable(hTrackPad.TrackTable);
+%             hTrackPad.TrackTable.TableData=CreateSubTable(hTrackPad.Tracks.tbl);
+%             pedigreestructure=CreateCloneFiles(hTrackPad.TrackTable.TableData,hTrackPad.Tracks.tbl,...
+%                 hTrackPad.ImageStack.AcquisitionTimes);
+%             hTrackPad.TrackTable.PedigreeData=pedigreestructure;
             CreateTrackTable(hTrackPad.TrackTable);
         end
         

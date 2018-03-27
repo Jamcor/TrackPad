@@ -415,6 +415,7 @@ classdef TrackCollection < handle
         function tracks=SubTable(obj)
             tracks=[];
             tracks.Track_ID=1:length(obj.Tracks);
+            tracks.Parent_ID=zeros(numb_tracks,1);
             tracks.Ancestor_ID=zeros(length(tracks.Track_ID),1);
             tracks.Progeny_ID=zeros(length(tracks.Track_ID),1);
             tracks.Generation_ID=zeros(length(tracks.Track_ID),1);
@@ -422,14 +423,35 @@ classdef TrackCollection < handle
             tracks.Track_ID=(1:length(tracks.Track_ID))';
             tracks.Fate=cell(length(tracks.Track_ID),1);
             
+            annotations=fieldnames(obj.CntrlObj.CellProperties(3).String);
+            ndx=cellfun(@(x) ~strcmp(x,'PedigreeID'),annotations);
+            annotations=annotations(ndx); %remove PedigreeID 
+            
+            for i=1:length(annotations)
+            tracks=setfield(tracks,['Initial_' annotations{i}],cell(length(obj.Tracks),1));
+            tracks=setfield(tracks,['Final_' annotations{i}],cell(length(obj.Tracks),1));
+            end
+            
+            
             for i=1:length(tracks.Track_ID)
+%                 disp(['track ' num2str(i)]);
                 if ~isempty(obj.Tracks(i).ParentID)
                     tracks.Parent_ID(i)=obj.Tracks(i).ParentID;
                 else
                     tracks.Parent_ID(i)=NaN;
                 end
+                firstframe=obj.Tracks(i).Track.trackrange(1);
                 lastframe=obj.Tracks(i).Track.trackrange(2);
                 tracks.Fate{i}=obj.Tracks(i).Track.Track{lastframe}.Annotation.Symbol;
+                                
+                for j=1:length(annotations)
+                    initial=obj.Tracks(i).Track.Track{firstframe+1}.Annotation.Symbol.(annotations{j});
+                    final=obj.Tracks(i).Track.Track{lastframe-1}.Annotation.Symbol.(annotations{j});
+                    tracks=setfield(tracks,['Initial_' annotations{j}],{i},{initial});
+                    tracks=setfield(tracks,['Final_' annotations{j}],{i},{final});
+                end
+                
+                
             end
             
             for i=1:length(tracks.Track_ID)
@@ -497,7 +519,11 @@ classdef TrackCollection < handle
                     
                 end
             end
-            
+            tracks.Parent_ID=arrayfun(@(x) {x},tracks.Parent_ID)';
+            tracks.Track_ID=arrayfun(@(x) {x},tracks.Track_ID);
+            tracks.Ancestor_ID=arrayfun(@(x) {x},tracks.Ancestor_ID);
+            tracks.Progeny_ID=arrayfun(@(x) {x},tracks.Progeny_ID);
+            tracks.Generation_ID=arrayfun(@(x) {x},tracks.Generation_ID);
             return
         end
         
@@ -505,8 +531,8 @@ classdef TrackCollection < handle
             for i=1:length(obj.Tracks)
                 m=obj.Tracks(i).Track.trackrange(1);
                 n=obj.Tracks(i).Track.trackrange(2);     
-                pedigree_id=obj.TableData.Ancestor_ID(i);
-                progeny_id=obj.TableData.Progeny_ID(i);
+                pedigree_id=obj.TableData.Ancestor_ID{i};
+                progeny_id=obj.TableData.Progeny_ID{i};
                 for j=(m+1):(n-1)
                     obj.Tracks(i).Track.Track{j}.Annotation.Type.PedigreeID=['Pedigree ' num2str(pedigree_id) ' Track ' num2str(progeny_id)];
                     obj.Tracks(i).Track.Track{j}.Annotation.Symbol.PedigreeID=['P' num2str(pedigree_id) 'Tr' num2str(progeny_id)];
