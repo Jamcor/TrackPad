@@ -1224,7 +1224,6 @@ classdef TrackPad < handle
                         end
                     end
             end
-            
         end
         
         function OpenTracks(hObject,EventData,hTrackPad)
@@ -1385,18 +1384,24 @@ classdef TrackPad < handle
                 hTrackPad.ImageContextMenu.ReturnToStart.Visible='off'; %return to start
                 hTrackPad.ImageContextMenu.GoToEnd.Visible='off'; %go to end
                 if hTrackPad.Tracks.CurrentTrackID>0 % a selected track
-                    CurrentTrackID=hTrackPad.Tracks.CurrentTrackID;
+                    CurrentTrackID=hTrackPad.Tracks.CurrentTrackID;                 
+%                     xx=cellfun(@(x) isempty(x),{hTrackPad.Tracks.Tracks.ParentID});
+%                     nextparent=find(xx(CurrentTrackID:end),1)+(CurrentTrackID-1);
+                    for i=(CurrentTrackID+1):length(hTrackPad.Tracks.Tracks)
+                        if ~isempty(hTrackPad.Tracks.Tracks(i).ParentID) && (hTrackPad.Tracks.Tracks(i).ParentID)>CurrentTrackID
+                            hTrackPad.Tracks.Tracks(i).ParentID=hTrackPad.Tracks.Tracks(i).ParentID-1;   
+                        elseif hTrackPad.Tracks.Tracks(i).ParentID==CurrentTrackID
+                            hTrackPad.Tracks.Tracks(i).ParentID=[];
+                            hTrackPad.Tracks.Tracks(i).Parent=[];
+                        firstframe=find(cellfun(@(x) ~isempty(x),hTrackPad.Tracks.Tracks(i).Track.Track),1,'first');
+                        hTrackPad.Tracks.Tracks(i).Track.Track{firstframe}.Annotation.Symbol='NA';
+                        hTrackPad.Tracks.Tracks(i).Track.Track{firstframe}.Annotation.Type='ancestor';
+                        end
+                    end
+                    
                     Remove(hTrackPad.Tracks);
                     hTrackPad.Tracks.CurrentTrack=[];
                     hTrackPad.Tracks.CurrentTrackID=0;
-                    
-                    xx=cellfun(@(x) isempty(x),{hTrackPad.Tracks.Tracks.ParentID});
-                    nextparent=find(xx(CurrentTrackID:end),1)+(CurrentTrackID-1);
-                    for i=nextparent:length(hTrackPad.Tracks.Tracks)
-                        if ~isempty(hTrackPad.Tracks.Tracks(i).ParentID)
-                            hTrackPad.Tracks.Tracks(i).ParentID=hTrackPad.Tracks.Tracks(i).ParentID-1;
-                        end
-                    end
                     
                     hTrackPad.Tracks.TableData=SubTable(hTrackPad.Tracks); %update tabledata
                     
@@ -1845,11 +1850,20 @@ classdef TrackPad < handle
             hTrackPad.ImageContextMenu.ContinueTrack.Visible='off';
             hTrackPad.ImageContextMenu.StopTrack.Visible='off';
             hTrackPad.ImageContextMenu.DeleteTrack.Visible='off';
+            
+            hTrackPad.Tracks.TableData=SubTable(hTrackPad.Tracks); %update tabledata
+            pedigree_id=hTrackPad.Tracks.TableData.Ancestor_ID{CurrentTrackID};
+            progeny_id=hTrackPad.Tracks.TableData.Progeny_ID{CurrentTrackID};
+            n=find(cellfun(@(x) ~isempty(x),hTrackPad.Track.Track),1,'first');
+            m=find(cellfun(@(x) ~isempty(x),hTrackPad.Track.Track),1,'last');            
+            for i=(n+1):(m-1)
+                hTrackPad.Track.Track{i}.Annotation.Type.PedigreeID=['Pedigree ' num2str(pedigree_id) ' Track ' num2str(progeny_id)];
+                hTrackPad.Track.Track{i}.Annotation.Symbol.PedigreeID=['P' num2str(pedigree_id) 'Tr' num2str(progeny_id)];
+            end            
+
             delete(src);
             hTrackPad.AnnotationFigureHandle=[];
             hTrackPad.Track=[];
-            hTrackPad.Tracks.TableData=SubTable(hTrackPad.Tracks); %update tabledata
-            
         end
         
         function getParent(hObject,EventData,TrackID,CellTrackCollection)
@@ -1949,12 +1963,12 @@ classdef TrackPad < handle
                    if ~isempty(hTrackPad.Tracks.Tracks(i).Track.Track{m})
                     x=hTrackPad.Tracks.Tracks(i).Track.Track{m}.Position(1,1)+hTrackPad.Tracks.Tracks(i).Track.Track{m}.Position(1,3)/2;
                     y=hTrackPad.Tracks.Tracks(i).Track.Track{m}.Position(1,2)+hTrackPad.Tracks.Tracks(i).Track.Track{m}.Position(1,4)/2;
-                    if m==1
+                    if (m==hTrackPad.Tracks.Tracks(i).Track.trackrange(1)|| m==hTrackPad.Tracks.Tracks(i).Track.trackrange(2))
                     hTrackPad.Tracks.Tracks(i).Track.Track{m}.AnnotationHandle=text(x,y,...
                                 hTrackPad.Tracks.Tracks(i).Track.Track{m}.Annotation.Symbol,...
                                 'HorizontalAlignment','center','PickableParts','none',...
                                 'Clipping','on','FontAngle','oblique','Visible','On','Color','g');                        
-                    elseif m>1
+                    elseif sum(m~=hTrackPad.Tracks.Tracks(i).Track.trackrange)==2
                     hTrackPad.Tracks.Tracks(i).Track.Track{m}.AnnotationHandle=text(x,y,...
                                 hTrackPad.Tracks.Tracks(i).Track.Track{m}.Annotation.Symbol.(hTrackPad.AnnotationDisplay),...
                                 'HorizontalAlignment','center','PickableParts','none',...
@@ -1978,8 +1992,8 @@ classdef TrackPad < handle
             value=EventData.Source.Value;
             progenyid=sscanf(EventData.Source.String{value},'Track %d');
             lineageid=sscanf(hTrackPad.TrackPanel.ClonesPopup.String{hTrackPad.TrackPanel.ClonesPopup.Value},'Pedigree %d');
-            trackid=find((hTrackPad.Tracks.TableData.Ancestor_ID==lineageid &...
-                hTrackPad.Tracks.TableData.Progeny_ID==progenyid));
+            trackid=find(([hTrackPad.Tracks.TableData.Ancestor_ID{:}]==lineageid &...
+                [hTrackPad.Tracks.TableData.Progeny_ID{:}]==progenyid));
             hTrackPad.Tracks.CurrentTrackID=trackid;
             displaystring={['Pedigree ' num2str(lineageid)] ['Track ' num2str(progenyid)]};
             displaystring=textwrap(hTrackPad.TrackPanel.CurrentTrackDisplay,displaystring);
@@ -1992,8 +2006,8 @@ classdef TrackPad < handle
         function ChooseClone(Object,EventData,hTrackPad)
             value=EventData.Source.Value;
             cloneid=sscanf(EventData.Source.String{value},'Pedigree %d');
-            ndx=hTrackPad.Tracks.TableData.Ancestor_ID==cloneid;
-            progenyid=sort(hTrackPad.Tracks.TableData.Progeny_ID(ndx));
+            ndx=[hTrackPad.Tracks.TableData.Ancestor_ID{:}]==cloneid;
+            progenyid=sort([hTrackPad.Tracks.TableData.Progeny_ID{ndx}]);
             progenyid=arrayfun(@(x) ['Track ' num2str(x)],progenyid,'UniformOutput',0);
             hTrackPad.TrackPanel.TracksPopup.String=progenyid;
             hTrackPad.TrackPanel.TracksPopup.Value=1;

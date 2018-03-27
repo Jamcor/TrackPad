@@ -62,7 +62,7 @@ classdef TrackCollection < handle
                 end
                 obj.Tracks(1).Parent=[]; % no parent at this stage
                 obj.Tracks(1).ParentID=[];
-%                 obj.Tracks(1).
+                %                 obj.Tracks(1).
                 obj.Tracks(1).Track.trackrange=[n,m];
                 % Annotate all other timepoints as NA (No Annotation)
                 fnames=fieldnames(hTrackPad.CellProperties(3).Type);
@@ -74,9 +74,9 @@ classdef TrackCollection < handle
                     x=Position(1)+Position(3)/2;
                     y=Position(2)+Position(4)/2;
                     obj.Tracks(1).Track.Track{i}.AnnotationHandle=[];
-%                     obj.Tracks(1).Track.Track{i}.AnnotationHandle=text(x,y,...  %display fluorescent annotations by defualt
-%                         hTrackPad.CellProperties(3).Symbol.(fnames{1}){1},...
-%                         'Color','g','HorizontalAlignment','center','Visible','off','PickableParts','none');
+                    %                     obj.Tracks(1).Track.Track{i}.AnnotationHandle=text(x,y,...  %display fluorescent annotations by defualt
+                    %                         hTrackPad.CellProperties(3).Symbol.(fnames{1}){1},...
+                    %                         'Color','g','HorizontalAlignment','center','Visible','off','PickableParts','none');
                     if i==CurrentNdx
                         obj.Tracks(1).Track.Track{i}.AnnotationHandle.Visible='on';
                     end
@@ -102,14 +102,14 @@ classdef TrackCollection < handle
                     x=Position(1)+Position(3)/2;
                     y=Position(2)+Position(4)/2;
                     obj.Tracks(end).Track.Track{n}.AnnotationHandle=[];
-%                     obj.Tracks(end).Track.Track{n}.AnnotationHandle=text(x,y,...
-%                         hTrackPad.CellProperties(1).Symbol{1},...
-%                         'Color','g','HorizontalAlignment','center','Visible','off','PickableParts','none');
+                    %                     obj.Tracks(end).Track.Track{n}.AnnotationHandle=text(x,y,...
+                    %                         hTrackPad.CellProperties(1).Symbol{1},...
+                    %                         'Color','g','HorizontalAlignment','center','Visible','off','PickableParts','none');
                     if n==CurrentNdx
-                    obj.Tracks(end).Track.Track{n}.AnnotationHandle=text(x,y,...
-                        hTrackPad.CellProperties(1).Symbol{1},...
-                        'Color','g','HorizontalAlignment','center','Visible','on','PickableParts','none');                        
-%                         obj.Tracks(end).Track.Track{n}.AnnotationHandle.Visible='on';
+                        obj.Tracks(end).Track.Track{n}.AnnotationHandle=text(x,y,...
+                            hTrackPad.CellProperties(1).Symbol{1},...
+                            'Color','g','HorizontalAlignment','center','Visible','on','PickableParts','none');
+                        %                         obj.Tracks(end).Track.Track{n}.AnnotationHandle.Visible='on';
                     end
                 end
                 % Annotated fate as Not complete
@@ -145,8 +145,8 @@ classdef TrackCollection < handle
                 end
             end
             obj.TableData=SubTable(obj);
-            pedigree_id=obj.TableData.Ancestor_ID(end);
-            progeny_id=obj.TableData.Progeny_ID(end);
+            pedigree_id=obj.TableData.Ancestor_ID{end};
+            progeny_id=obj.TableData.Progeny_ID{end};
             for i=(n+1):(m-1)
                 obj.Tracks(end).Track.Track{i}.Annotation.Type.PedigreeID=['Pedigree ' num2str(pedigree_id) ' Track ' num2str(progeny_id)];
                 obj.Tracks(end).Track.Track{i}.Annotation.Symbol.PedigreeID=['P' num2str(pedigree_id) 'Tr' num2str(progeny_id)];
@@ -173,7 +173,7 @@ classdef TrackCollection < handle
             obj.CurrentTrackID=0;
             obj.CurrentTrack=[];
         end
-               
+        
         function CreateTracks(obj,hObject,EventData)
             beep off;
             if ~isa(obj.CntrlObj.ImageStack,'ImageStack')
@@ -215,48 +215,48 @@ classdef TrackCollection < handle
                 obj.CntrlObj.ImageStack.CurrentNdx=range(1); %get first frames that cell is present
                 obj.CntrlObj.Track.FindCellState='stop'; % don't allow editing of saved tracks
                 % obj.CntrlObj.Track.Track{range(1)}.Mask=Mask(:,:,1);
-%                 obj.CntrlObj.Track.Track{range(1)}.Mask=find(createMask(hellipse)>0);
-%                 obj.CntrlObj.Track.Track{range(1)}.CellIm=Cell_Image(:,:,1);
+                %                 obj.CntrlObj.Track.Track{range(1)}.Mask=find(createMask(hellipse)>0);
+                %                 obj.CntrlObj.Track.Track{range(1)}.CellIm=Cell_Image(:,:,1);
                 obj.CntrlObj.Track.Track{range(1)}.ImageNumber=Image_Number(1);
                 obj.CntrlObj.Track.Track{range(1)}.Position=Position(1,:);
                 obj.CntrlObj.Track.Track{range(1)}.Annotation=Annotation(1);
-%                 x=Position(1,1)+Position(1,3)/2;
-%                 y=Position(1,2)+Position(1,4)/2;
-%                 obj.CntrlObj.Track.Track{range(1)}.AnnotationHandle=text(x,y,...
-%                     obj.CntrlObj.Track.Track{range(1)}.Annotation.Symbol,'Color','g',...
-%                     'HorizontalAlignment','center','PickableParts','none');
+                %                 x=Position(1,1)+Position(1,3)/2;
+                %                 y=Position(1,2)+Position(1,4)/2;
+                %                 obj.CntrlObj.Track.Track{range(1)}.AnnotationHandle=text(x,y,...
+                %                     obj.CntrlObj.Track.Track{range(1)}.Annotation.Symbol,'Color','g',...
+                %                     'HorizontalAlignment','center','PickableParts','none');
                 delete(hellipse);
                 for j=1:(range(2)-range(1))
-%                     hellipse=imellipse(obj.CntrlObj.ImageHandle.Parent,Position(j+1,:));
-%                     set(hellipse,'Visible','off');
-%                     setResizable(hellipse,0);
-%                     set(hellipse,'PickableParts','none');
+                    %                     hellipse=imellipse(obj.CntrlObj.ImageHandle.Parent,Position(j+1,:));
+                    %                     set(hellipse,'Visible','off');
+                    %                     setResizable(hellipse,0);
+                    %                     set(hellipse,'PickableParts','none');
                     obj.CntrlObj.Track.Track{range(1)+j}=CellImage; %calls @CellImage
-%                     obj.CntrlObj.Track.Track{range(1)+j}.EllipseHandle=hellipse;
+                    %                     obj.CntrlObj.Track.Track{range(1)+j}.EllipseHandle=hellipse;
                     obj.CntrlObj.Track.Track{range(1)+j}.ParentTracker=obj.CntrlObj.Track;
                     %                      obj.CntrlObj.Track.Track{range(1)+j}.Mask=Mask(:,:,j+1);
-%                     obj.CntrlObj.Track.Track{range(1)+j}.Mask=find(createMask(hellipse)>0);
-%                     obj.CntrlObj.Track.Track{range(1)+j}.CellIm=Cell_Image(:,:,j+1);
+                    %                     obj.CntrlObj.Track.Track{range(1)+j}.Mask=find(createMask(hellipse)>0);
+                    %                     obj.CntrlObj.Track.Track{range(1)+j}.CellIm=Cell_Image(:,:,j+1);
                     obj.CntrlObj.Track.Track{range(1)+j}.ImageNumber=Image_Number(j+1);
                     obj.CntrlObj.Track.Track{range(1)+j}.Position=Position(j+1,:);
                     obj.CntrlObj.Track.Track{range(1)+j}.Annotation=Annotation(j+1);
-%                     x=Position(j+1,1)+Position(j+1,3)/2;
-%                     y=Position(j+1,2)+Position(j+1,4)/2;
-%                     if (j+range(1))<range(2)
-%                         obj.CntrlObj.Track.Track{range(1)+j}.AnnotationHandle=text(x,y,...
-%                             obj.CntrlObj.Track.Track{range(1)+j}.Annotation.Symbol.(fnames{1}),'Color','g',...
-%                             'HorizontalAlignment','center','PickableParts','none','Visible','off');%disp fluo annotation by default
-%                     elseif (j+range(1))==range(2)
-%                         obj.CntrlObj.Track.Track{range(1)+j}.AnnotationHandle=text(x,y,...
-%                             obj.CntrlObj.Track.Track{range(1)+j}.Annotation.Symbol,'Color','g',...
-%                             'HorizontalAlignment','center','PickableParts','none','Visible','off');%disp fate in last frame
-%                     end
+                    %                     x=Position(j+1,1)+Position(j+1,3)/2;
+                    %                     y=Position(j+1,2)+Position(j+1,4)/2;
+                    %                     if (j+range(1))<range(2)
+                    %                         obj.CntrlObj.Track.Track{range(1)+j}.AnnotationHandle=text(x,y,...
+                    %                             obj.CntrlObj.Track.Track{range(1)+j}.Annotation.Symbol.(fnames{1}),'Color','g',...
+                    %                             'HorizontalAlignment','center','PickableParts','none','Visible','off');%disp fluo annotation by default
+                    %                     elseif (j+range(1))==range(2)
+                    %                         obj.CntrlObj.Track.Track{range(1)+j}.AnnotationHandle=text(x,y,...
+                    %                             obj.CntrlObj.Track.Track{range(1)+j}.Annotation.Symbol,'Color','g',...
+                    %                             'HorizontalAlignment','center','PickableParts','none','Visible','off');%disp fate in last frame
+                    %                     end
                     obj.CntrlObj.Track.Track{range(1)+j}.Result.rho=Result.rho(j+1);
                     obj.CntrlObj.Track.Track{range(1)+j}.Result.pval=Result.pval(j+1);
                     %                      obj.CntrlObj.Track.Track{range(1)+j}.Result.ElapsedTime=Result.ElapsedTime;
                     obj.CntrlObj.Track.Track{range(1)+j}.Result.ElapsedTime=Result.ElapsedTime(j+1);
                     obj.CntrlObj.Track.Track{range(1)+j}.Result.Time=Result.Time(j+1);
-%                     obj.CntrlObj.Track.Track{range(1)+j}.Result.FindCellState=FindCellState{j+1};
+                    %                     obj.CntrlObj.Track.Track{range(1)+j}.Result.FindCellState=FindCellState{j+1};
                     obj.CntrlObj.Track.Track{range(1)+j}.Result.FindCellState=FindCellState{range(1)+j};
                     obj.CntrlObj.Track.Track{range(1)+j}.CntrlObj=obj.CntrlObj;
                     delete(hellipse);
@@ -276,7 +276,7 @@ classdef TrackCollection < handle
             obj.CntrlObj.ImageContextMenu.DeleteTrack.Visible='off';
             obj.CntrlObj.ImageContextMenu.SelectTrack.Visible='on';
             obj.TableData=SubTable(obj);
-            UpdatePedigreeId(obj); %update pedigree id annotations            
+            UpdatePedigreeId(obj); %update pedigree id annotations
             obj.CurrentTrackID=0;  % ensures that next track will be appended!
             obj.CntrlObj.Track=[]; % current track can no longer be edited.
             close(h);
@@ -320,12 +320,12 @@ classdef TrackCollection < handle
                 SearchRadius{i}=obj.Tracks(i).Track.parameters.searchradius;
                 CorrelationThreshold{i}=obj.Tracks(i).Track.parameters.confidencethreshold;
                 for j=1:n
-%                     disp(num2str(j));
+                    %                     disp(num2str(j));
                     if ~isempty(obj.Tracks(i).Track.Track{j})
                         t{i}=[t{i} AcquisitionTimes(j)];
                         try
                             CellIm{i}=cat(3,CellIm{i},obj.Tracks(i).Track.Track{j}.CellIm);
-%                             CellMask{i}=cat(3,CellMask{i},obj.Tracks(i).Track.Track{j}.Mask);
+                            %                             CellMask{i}=cat(3,CellMask{i},obj.Tracks(i).Track.Track{j}.Mask);
                         catch
                             disp('here');
                         end
@@ -365,14 +365,14 @@ classdef TrackCollection < handle
                 end
                 
             end
-%             obj.tbl=table(TrackID,FileID,ParentID,t,ImageNumber, Position, CellIm,CellMask,AnnotationName,...
-%                 AnnotationType, AnnotationSymbol, rho,pval,ElapsedTime,Time,FindCellState,CellRadius,SearchRadius,...
-%                 CorrelationThreshold,'VariableNames',{'Track_ID','File_ID',...
-%                 'Parent_ID','time','Image_Number', 'Position','Cell_Image',...
-%                 'CellMask','Annotation_Name','Annotation_type', 'Annotation_Symbol',...
-%                 'rho','pval','Processor_Time','Tracking_Time',...
-%                 'Tracker_State','CellRadius','SearchRadius',...
-%                 'CorrelationThreshold'});
+            %             obj.tbl=table(TrackID,FileID,ParentID,t,ImageNumber, Position, CellIm,CellMask,AnnotationName,...
+            %                 AnnotationType, AnnotationSymbol, rho,pval,ElapsedTime,Time,FindCellState,CellRadius,SearchRadius,...
+            %                 CorrelationThreshold,'VariableNames',{'Track_ID','File_ID',...
+            %                 'Parent_ID','time','Image_Number', 'Position','Cell_Image',...
+            %                 'CellMask','Annotation_Name','Annotation_type', 'Annotation_Symbol',...
+            %                 'rho','pval','Processor_Time','Tracking_Time',...
+            %                 'Tracker_State','CellRadius','SearchRadius',...
+            %                 'CorrelationThreshold'});
             obj.tbl=table(TrackID,FileID,ParentID,t,ImageNumber, Position, CellIm,AnnotationName,...
                 AnnotationType, AnnotationSymbol, rho,pval,ElapsedTime,Time,FindCellState,CellRadius,SearchRadius,...
                 CorrelationThreshold,'VariableNames',{'Track_ID','File_ID',...
@@ -384,7 +384,7 @@ classdef TrackCollection < handle
             close(h);
         end
         
-            
+        
         
         
         function gather(obj)
@@ -415,7 +415,7 @@ classdef TrackCollection < handle
         function tracks=SubTable(obj)
             tracks=[];
             tracks.Track_ID=1:length(obj.Tracks);
-            tracks.Parent_ID=zeros(numb_tracks,1);
+            tracks.Parent_ID=zeros(length(tracks.Track_ID),1);
             tracks.Ancestor_ID=zeros(length(tracks.Track_ID),1);
             tracks.Progeny_ID=zeros(length(tracks.Track_ID),1);
             tracks.Generation_ID=zeros(length(tracks.Track_ID),1);
@@ -425,16 +425,16 @@ classdef TrackCollection < handle
             
             annotations=fieldnames(obj.CntrlObj.CellProperties(3).String);
             ndx=cellfun(@(x) ~strcmp(x,'PedigreeID'),annotations);
-            annotations=annotations(ndx); %remove PedigreeID 
+            annotations=annotations(ndx); %remove PedigreeID
             
             for i=1:length(annotations)
-            tracks=setfield(tracks,['Initial_' annotations{i}],cell(length(obj.Tracks),1));
-            tracks=setfield(tracks,['Final_' annotations{i}],cell(length(obj.Tracks),1));
+                tracks=setfield(tracks,['Initial_' annotations{i}],cell(length(obj.Tracks),1));
+                tracks=setfield(tracks,['Final_' annotations{i}],cell(length(obj.Tracks),1));
             end
             
             
             for i=1:length(tracks.Track_ID)
-%                 disp(['track ' num2str(i)]);
+                %                 disp(['track ' num2str(i)]);
                 if ~isempty(obj.Tracks(i).ParentID)
                     tracks.Parent_ID(i)=obj.Tracks(i).ParentID;
                 else
@@ -443,7 +443,7 @@ classdef TrackCollection < handle
                 firstframe=obj.Tracks(i).Track.trackrange(1);
                 lastframe=obj.Tracks(i).Track.trackrange(2);
                 tracks.Fate{i}=obj.Tracks(i).Track.Track{lastframe}.Annotation.Symbol;
-                                
+                
                 for j=1:length(annotations)
                     initial=obj.Tracks(i).Track.Track{firstframe+1}.Annotation.Symbol.(annotations{j});
                     final=obj.Tracks(i).Track.Track{lastframe-1}.Annotation.Symbol.(annotations{j});
@@ -482,7 +482,7 @@ classdef TrackCollection < handle
                 ancestorndx=find(tracks(:).Ancestor_ID==i); % get ndx for all cells within pedigree
                 %                 disp(['anc ' num2str(i)]);
                 for j=1:length(ancestorndx) %Loop through all cells in pedigree
-                    %                     disp(['cell ' num2str(j)]);               
+                    %                     disp(['cell ' num2str(j)]);
                     parentid=tracks.Parent_ID(ancestorndx(j));
                     daughterid=tracks.Daughter_IDs{ancestorndx(j)}; %get parent and daughter ids
                     
@@ -504,17 +504,38 @@ classdef TrackCollection < handle
                         end
                         
                     elseif ~isnan (parentid) && ~isempty(daughterid) %daughters
-                        if length(daughterid)==1
+                        if ancestorndx(j)<parentid %if mother cell is further down tracktable than daughter cell
+                            %first enter details of mother
+                            %                          parentID=parentid;
+                            daughterid=tracks.Daughter_IDs{parentid}; %get parent and daughter ids
+                            progenyid=tracks.Progeny_ID(parentid);
+                            %                          parentid=tracks.Parent_ID(parentID);
+                            if length(daughterid)==1
+                                progenyid=tracks.Progeny_ID(parentid);
+                                tracks.Progeny_ID(daughterid(1))=progenyid*2;
+                                tracks.Generation_ID(daughterid(1))=tracks.Generation_ID(parentid)+1;
+                            elseif length(daughterid)==2
+                                tracks.Progeny_ID(daughterid(1))=progenyid*2;
+                                tracks.Progeny_ID(daughterid(2))=progenyid*2+1;
+                                tracks.Generation_ID(daughterid(1))=tracks.Generation_ID(parentid)+1;
+                                tracks.Generation_ID(daughterid(2))=tracks.Generation_ID(parentid)+1;
+                            end
+                            
+                        end
+                        daughterid=tracks.Daughter_IDs{ancestorndx(j)}; %get parent and daughter ids
+                        progenyid=tracks.Progeny_ID(ancestorndx(j));
+                        if length(daughterid)==1 && ~ancestorndx(j)<parentid
                             progenyid=tracks.Progeny_ID(ancestorndx(j));
                             tracks.Progeny_ID(daughterid(1))=progenyid*2;
                             tracks.Generation_ID(daughterid(1))=tracks.Generation_ID(ancestorndx(j))+1;
-                        else
+                        elseif length(daughterid)==2 && ~ancestorndx(j)<parentid
                             progenyid=tracks.Progeny_ID(ancestorndx(j));
                             tracks.Progeny_ID(daughterid(1))=progenyid*2;
                             tracks.Progeny_ID(daughterid(2))=progenyid*2+1;
                             tracks.Generation_ID(daughterid(1))=tracks.Generation_ID(ancestorndx(j))+1;
                             tracks.Generation_ID(daughterid(2))=tracks.Generation_ID(ancestorndx(j))+1;
                         end
+                        
                     end
                     
                 end
@@ -530,7 +551,7 @@ classdef TrackCollection < handle
         function UpdatePedigreeId(obj) %update pedigree id annotations
             for i=1:length(obj.Tracks)
                 m=obj.Tracks(i).Track.trackrange(1);
-                n=obj.Tracks(i).Track.trackrange(2);     
+                n=obj.Tracks(i).Track.trackrange(2);
                 pedigree_id=obj.TableData.Ancestor_ID{i};
                 progeny_id=obj.TableData.Progeny_ID{i};
                 for j=(m+1):(n-1)

@@ -330,14 +330,16 @@ classdef TrackPad < handle
                 uimenu(AnnotationDisplayMenuHandle,'Label',fnames{i},...
                     'Callback',{@obj.ChangeAnnotationDisplay,obj},'Tag','Change annotation display');
             end
-            obj.AnnotationDisplay=fnames{1}; %set fluorescent annotation subsets by default
+                        uimenu(AnnotationDisplayMenuHandle,'Label','None',...
+                    'Callback',{@obj.ChangeAnnotationDisplay,obj},'Tag','Change annotation display');
+            
+            obj.AnnotationDisplay='None'; %set fluorescent annotation subsets by default
             
             %add optimisation menu
             OptimiseMenuHandle = uimenu(obj.FigureHandle,'Label','Optimise');
-            uimenu(OptimiseMenuHandle,'Label','Optimise rho',...
-                'Callback',{@obj.OptimiseRho,obj});
-            uimenu(OptimiseMenuHandle,'Label','Optimise search radius',...
-                'Callback',{@obj.OptimiseSearchRadius,obj});
+            uimenu(OptimiseMenuHandle,'Label','Run avatar optimisation',...
+                'Callback',{@obj.AvatarOptimisation,obj});
+
             
         end
         
@@ -359,14 +361,14 @@ classdef TrackPad < handle
         function set.Track(obj,value)
             obj.Track=value;
             if ~isempty(obj.Track)
-                addlistener(value,'LostCellEvent',@obj.listenLostCellEvent);
-                addlistener(value,'EndOfTrackEvent',@obj.listenEndOfTrackEvent);
+              obj.Track.LostCellListener=event.listener(value,'LostCellEvent',@obj.listenLostCellEvent);
+              obj.Track.EndTrackListener=event.listener(value,'EndOfTrackEvent',@obj.listenEndOfTrackEvent);
             end
         end
-        function set.Tracks(obj,value)
-            obj.Tracks=value;
-            addlistener(value,'AppendedTrackEvent',@obj.listenAppendedTrackEvent);
-        end
+%         function set.Tracks(obj,value)
+%             obj.Tracks=value;
+%             addlistener(value,'AppendedTrackEvent',@obj.listenAppendedTrackEvent);
+%         end
         function listenLostCellEvent(obj,src,evnt)
             % obj - instance of this class
             % src - object generating event
@@ -390,9 +392,9 @@ classdef TrackPad < handle
             obj.ImageContextMenu.DeleteTrack.Visible='on';
             disp('End of Track Event');
         end
-        function listenAppendedTrackEvent(obj,src,~)
-            obj.ImageContextMenu.StartTrack.Visible='on';
-        end
+%         function listenAppendedTrackEvent(obj,src,~)
+%             obj.ImageContextMenu.StartTrack.Visible='on';
+%         end
     end
     
     methods (Static=true)
@@ -579,27 +581,22 @@ classdef TrackPad < handle
             
         end
         
-        function DisplayAnnotation(hObject,EventData,hTrackPad)
+        function DisplayAnnotation(~,~,hTrackPad)
             %figure(hTrackPad.FigureHandle);
-            currentrackid=hTrackPad.Tracks.CurrentTrackID;
             n=hTrackPad.ImageStack.CurrentNdx;
             last=hTrackPad.ImageStack.LastNdx;
             fnames=fieldnames(hTrackPad.CellProperties(3).Type);
             subsetdisplay=hTrackPad.AnnotationDisplay;
             if (n~=last)
-                % update Stored Tracks
-                m=length(hTrackPad.Tracks.Tracks);
+              %switch off last annotations
+              annotation_handles=findobj(gcf,'Type','Text');
+              delete(annotation_handles);
+              % update Stored Tracks
+              m=length(hTrackPad.Tracks.Tracks);
                 for i=1:m
                     Track=hTrackPad.Tracks.Tracks(i).Track.Track;
                     range=hTrackPad.Tracks.Tracks(i).Track.trackrange;
-                    %switch off last annotations
-                    if ~isempty(Track{last})
-                        %                         if ~isempty(Track{last}.AnnotationHandle)
-                        %                             set(Track{last}.AnnotationHandle,'Visible','off');
-                        delete(Track{last}.AnnotationHandle);
-                        %                         end
-                    end
-                    if ~isempty(Track{n}) && sum(n~=range)==2 %update annotations for all but first frame
+                    if ~isempty(Track{n}) && sum(n~=range)==2 &&  ~strcmp(hTrackPad.AnnotationDisplay,'None') %update annotations for all but first frame
                         if isempty(Track{n}.AnnotationHandle)
                             x=Track{n}.Position(1,1)+Track{n}.Position(1,3)/2;
                             y=Track{n}.Position(1,2)+Track{n}.Position(1,4)/2;
@@ -607,9 +604,9 @@ classdef TrackPad < handle
                                 Track{n}.Annotation.Symbol.(subsetdisplay),...
                                 'HorizontalAlignment','center','PickableParts','none',...
                                 'Clipping','on','FontAngle','oblique');
-                            if i~=currentrackid
+                            if i~=hTrackPad.Tracks.CurrentTrackID
                                 set(Track{n}.AnnotationHandle,'Color',[0,1,0]);
-                            elseif i==currentrackid
+                            elseif i==hTrackPad.Tracks.CurrentTrackID
                                 set(Track{n}.AnnotationHandle,'Color',[1,0,0]);
                             end
                         else
@@ -620,13 +617,13 @@ classdef TrackPad < handle
                                 'HorizontalAlignment','center','PickableParts','none',...
                                 'Clipping','on','FontAngle','oblique','Visible','on');
                             %Track{n}.AnnotationHandle.String=Track{n}.Annotation.Symbol.(subsetdisplay);
-                            if i~=currentrackid
+                            if i~=hTrackPad.Tracks.CurrentTrackID
                                 set(Track{n}.AnnotationHandle,'Color',[0,1,0]);
-                            elseif i==currentrackid
+                            elseif i==hTrackPad.Tracks.CurrentTrackID
                                 set(Track{n}.AnnotationHandle,'Color',[1,0,0]);
                             end
                         end
-                    elseif ~isempty(Track{n}) &&(n==range(1)|| n==range(2))%update annotations for first frame
+                    elseif ~isempty(Track{n}) &&(n==range(1)|| n==range(2))&&  ~strcmp(hTrackPad.AnnotationDisplay,'None')%update annotations for first frame
                         if isempty(Track{n}.AnnotationHandle)
                             x=Track{n}.Position(1,1)+Track{n}.Position(1,3)/2;
                             y=Track{n}.Position(1,2)+Track{n}.Position(1,4)/2;
@@ -634,9 +631,9 @@ classdef TrackPad < handle
                                 Track{n}.Annotation.Symbol,...
                                 'HorizontalAlignment','center','PickableParts','none',...
                                 'Clipping','on','FontAngle','oblique');
-                            if i~=currentrackid
+                            if i~=hTrackPad.Tracks.CurrentTrackID
                                 set(Track{n}.AnnotationHandle,'Color',[0,1,0]);
-                            elseif i==currentrackid
+                            elseif i==hTrackPad.Tracks.CurrentTrackID
                                 set(Track{n}.AnnotationHandle,'Color',[1,0,0]);
                             end
                         else
@@ -647,9 +644,9 @@ classdef TrackPad < handle
                                 'HorizontalAlignment','center','PickableParts','none',...
                                 'Clipping','on','FontAngle','oblique');
                             set(Track{n}.AnnotationHandle,'Visible','on','Clipping','on');
-                            if i~=currentrackid
+                            if i~=hTrackPad.Tracks.CurrentTrackID
                                 set(Track{n}.AnnotationHandle,'Color',[0,1,0]);
-                            elseif i==currentrackid
+                            elseif i==hTrackPad.Tracks.CurrentTrackID
                                 set(Track{n}.AnnotationHandle,'Color',[1,0,0]);
                             end
                         end
@@ -705,9 +702,14 @@ classdef TrackPad < handle
             %append track to TrackCollection object
             if ~hTrackPad.Tracks.CurrentTrackID
                 hTrackPad.Tracks.Append;
+                hTrackPad.ImageContextMenu.StartTrack.Visible='on';
+
                 hTrackPad.Track=[];% no longer can be edited
                 hellipse=findall(gca,'Tag','imellipse');%remove ellipse
                 delete(hellipse);
+%                 hTrackPad.Tracks=
+                %delete listeners
+                
             else % selected existing track for editing
                 hTrackPad.Tracks.Tracks(hTrackPad.Tracks.CurrentTrackID).Track=hTrackPad.Track;
                 hTrackPad.Track=[];% no longer can be edited
@@ -734,17 +736,36 @@ classdef TrackPad < handle
             hTrackPad.ImageContextMenu.Cancel.Visible='on'; %cancel
             hTrackPad.ImageContextMenu.ReturnToStart.Visible='off'; %return to start
             hTrackPad.ImageContextMenu.GoToEnd.Visible='off'; %go to end
-            
-            n=length(hTrackPad.Tracks.Tracks);
-            m=hTrackPad.ImageStack.CurrentNdx; % make all tracks in current frame selectable
-            for i=1:n
-                if ~isempty(hTrackPad.Tracks.Tracks(i).Track.Track{m})
-                    hAnnotation=hTrackPad.Tracks.Tracks(i).Track.Track{m}.AnnotationHandle;
-                    set(hAnnotation,'PickableParts','all');
-                    set(hAnnotation,'ButtonDownFcn',{@hTrackPad.getAnnotationInfo,...
-                        i,hTrackPad.Tracks});
-                end
+                                 
+            if strcmp(hTrackPad.AnnotationDisplay,'None')
+%                 annotation_handles=findobj(gcf,'Type','Text');
+%                 delete(annotation_handles);
+                hTrackPad.AnnotationDisplay='PedigreeID'; %turn on pedigree annotations
             end
+                n=length(hTrackPad.Tracks.Tracks);
+                m=hTrackPad.ImageStack.CurrentNdx; % make all tracks in current frame selectable
+                for i=1:n
+                    if ~isempty(hTrackPad.Tracks.Tracks(i).Track.Track{m})  
+                        x=hTrackPad.Tracks.Tracks(i).Track.Track{m}.Position(1,1)+hTrackPad.Tracks.Tracks(i).Track.Track{m}.Position(1,3)/2;
+                        y=hTrackPad.Tracks.Tracks(i).Track.Track{m}.Position(1,2)+hTrackPad.Tracks.Tracks(i).Track.Track{m}.Position(1,4)/2;
+                        if (m==hTrackPad.Tracks.Tracks(i).Track.trackrange(1)|| m==hTrackPad.Tracks.Tracks(i).Track.trackrange(2))
+                            hTrackPad.Tracks.Tracks(i).Track.Track{m}.AnnotationHandle=text(x,y,...
+                                hTrackPad.Tracks.Tracks(i).Track.Track{m}.Annotation.Symbol,...
+                                'HorizontalAlignment','center','PickableParts','all',...
+                                'Clipping','on','FontAngle','oblique','Visible','On','Color','g');
+                        elseif sum(m~=hTrackPad.Tracks.Tracks(i).Track.trackrange)==2
+                            hTrackPad.Tracks.Tracks(i).Track.Track{m}.AnnotationHandle=text(x,y,...
+                                hTrackPad.Tracks.Tracks(i).Track.Track{m}.Annotation.Symbol.(hTrackPad.AnnotationDisplay),...
+                                'HorizontalAlignment','center','PickableParts','all',...
+                                'Clipping','on','FontAngle','oblique','Visible','On','Color','g');
+                        end
+                        hAnnotation=hTrackPad.Tracks.Tracks(i).Track.Track{m}.AnnotationHandle;
+                        %                     set(hAnnotation,'PickableParts','all','Visible','On');
+                        set(hAnnotation,'ButtonDownFcn',{@hTrackPad.getAnnotationInfo,...
+                            i,hTrackPad.Tracks});
+                    end
+                end           
+            
             hTrackPad.ImageContextMenu.DeleteTrack.Visible='off';
             hTrackPad.ImageContextMenu.AnnotateTrack.Visible='off';
             hTrackPad.ImageContextMenu.Reposition.Visible='off';
@@ -1203,15 +1224,15 @@ classdef TrackPad < handle
                         end
                     end
             end
-            
         end
         
         function OpenTracks(hObject,EventData,hTrackPad)
+            
             [FileName,PathName,FilterIndex] = uigetfile('*.mat','Get track table');
             s=load([PathName,FileName]);
             hTrackPad.CellProperties=s.CellProperties;
             fnames=fieldnames(hTrackPad.CellProperties(3).Type);
-            hTrackPad.AnnotationDisplay=fnames{1}; %set fluo annotation as default when loading tracks
+            hTrackPad.AnnotationDisplay='PedigreeID'; %set pedigree annotation as default when loading tracks
             if isa(hTrackPad.Tracks,'TrackCollection')
                 
                 %reset axes if tracks are loaded when the GUI is zoomed in
@@ -1225,6 +1246,7 @@ classdef TrackPad < handle
                 %Track collection already exists .... overwrite
                 button=questdlg('Delete current tracks?','Load tracks');
                 if strcmp(button,'Yes')
+                    tic;
                     delete(hTrackPad.Tracks);
                     d=findobj('Tag','imrect');
                     delete(d); % delete all ellipses
@@ -1240,18 +1262,22 @@ classdef TrackPad < handle
                     for i=1:length(hTrackPad.Tracks.Tracks)
                         Track=hTrackPad.Tracks.Tracks(i).Track.Track;
                         if ~isempty(Track{1})
-                            if ~isempty(Track{1}.AnnotationHandle)
-                                set(Track{1}.AnnotationHandle,'Color',[0,1,0],'Visible','on','Clipping','on');
-                            end
+                            x=Track{1}.Position(1,1)+Track{1}.Position(1,3)/2;
+                            y=Track{1}.Position(1,2)+Track{1}.Position(1,4)/2;
+                            Track{1}.AnnotationHandle=text(x,y,...
+                                Track{1}.Annotation.Symbol,...
+                                'HorizontalAlignment','center','PickableParts','none',...
+                                'Clipping','on','FontAngle','oblique','Visible','on','Color','g');
                         end
                     end
                     
                     %update track panel
-                    clones=unique(hTrackPad.Tracks.TableData.Ancestor_ID);
+                    clones=unique([hTrackPad.Tracks.TableData.Ancestor_ID{:}]);
                     clones=arrayfun(@(x) ['Pedigree ' num2str(x)],clones,'UniformOutput',0);
                     hTrackPad.TrackPanel.ClonesPopup.String=clones;
                 end
             else
+                tic;
                 hTrackPad.TrackFile=FileName;
                 hTrackPad.TrackPath=PathName;
                 hTrackPad.Tracks=TrackCollection;
@@ -1271,10 +1297,11 @@ classdef TrackPad < handle
                 end
                 
                 %update track panel
-                clones=unique(hTrackPad.Tracks.TableData.Ancestor_ID);
+                clones=unique([hTrackPad.Tracks.TableData.Ancestor_ID{:}]);
                 clones=arrayfun(@(x) ['Pedigree ' num2str(x)],clones,'UniformOutput',0);
                 hTrackPad.TrackPanel.ClonesPopup.String=clones;
             end
+            toc;
         end
         
         function SaveTracks(hObject,EventData,hTrackPad)
@@ -1357,18 +1384,25 @@ classdef TrackPad < handle
                 hTrackPad.ImageContextMenu.ReturnToStart.Visible='off'; %return to start
                 hTrackPad.ImageContextMenu.GoToEnd.Visible='off'; %go to end
                 if hTrackPad.Tracks.CurrentTrackID>0 % a selected track
-                    CurrentTrackID=hTrackPad.Tracks.CurrentTrackID;
+                    CurrentTrackID=hTrackPad.Tracks.CurrentTrackID;                 
+%                     xx=cellfun(@(x) isempty(x),{hTrackPad.Tracks.Tracks.ParentID});
+%                     nextparent=find(xx(CurrentTrackID:end),1)+(CurrentTrackID-1);
+                    for i=(CurrentTrackID+1):length(hTrackPad.Tracks.Tracks)
+                        if ~isempty(hTrackPad.Tracks.Tracks(i).ParentID) && (hTrackPad.Tracks.Tracks(i).ParentID)>CurrentTrackID
+                            hTrackPad.Tracks.Tracks(i).ParentID=hTrackPad.Tracks.Tracks(i).ParentID-1;   
+                        elseif hTrackPad.Tracks.Tracks(i).ParentID==CurrentTrackID
+                            hTrackPad.Tracks.Tracks(i).ParentID=[];
+                            hTrackPad.Tracks.Tracks(i).Parent=[];
+                        firstframe=find(cellfun(@(x) ~isempty(x),hTrackPad.Tracks.Tracks(i).Track.Track),1,'first');
+                        lastframe=find(cellfun(@(x) ~isempty(x),hTrackPad.Tracks.Tracks(i).Track.Track),1,'last');
+                        hTrackPad.Tracks.Tracks(i).Track.Track{firstframe}.Annotation.Symbol='NA';
+                        hTrackPad.Tracks.Tracks(i).Track.Track{firstframe}.Annotation.Type='ancestor';
+                        end
+                    end
+                    
                     Remove(hTrackPad.Tracks);
                     hTrackPad.Tracks.CurrentTrack=[];
                     hTrackPad.Tracks.CurrentTrackID=0;
-                    
-                    xx=cellfun(@(x) isempty(x),{hTrackPad.Tracks.Tracks.ParentID});
-                    nextparent=find(xx(CurrentTrackID:end),1)+(CurrentTrackID-1);
-                    for i=nextparent:length(hTrackPad.Tracks.Tracks)
-                        if ~isempty(hTrackPad.Tracks.Tracks(i).ParentID)
-                            hTrackPad.Tracks.Tracks(i).ParentID=hTrackPad.Tracks.Tracks(i).ParentID-1;
-                        end
-                    end
                     
                     hTrackPad.Tracks.TableData=SubTable(hTrackPad.Tracks); %update tabledata
                     
@@ -1376,8 +1410,8 @@ classdef TrackPad < handle
                         n=find(cellfun(@(x) ~isempty(x),hTrackPad.Tracks.Tracks(h).Track.Track),1,'first');
                         m=find(cellfun(@(x) ~isempty(x),hTrackPad.Tracks.Tracks(h).Track.Track),1,'last');
                         %update annotations
-                        pedigree_id=hTrackPad.Tracks.TableData.Ancestor_ID(h);
-                        progeny_id=hTrackPad.Tracks.TableData.Progeny_ID(h);
+                        pedigree_id=hTrackPad.Tracks.TableData.Ancestor_ID{h};
+                        progeny_id=hTrackPad.Tracks.TableData.Progeny_ID{h};
                         for i=(n+1):(m-1)
                             hTrackPad.Tracks.Tracks(h).Track.Track{i}.Annotation.Type.PedigreeID=['Pedigree ' num2str(pedigree_id) ' Track ' num2str(progeny_id)];
                             hTrackPad.Tracks.Tracks(h).Track.Track{i}.Annotation.Symbol.PedigreeID=['P' num2str(pedigree_id) 'Tr' num2str(progeny_id)];
@@ -1385,7 +1419,7 @@ classdef TrackPad < handle
                     end
                     
                     %update track panel
-                    clones=unique(hTrackPad.Tracks.TableData.Ancestor_ID);
+                    clones=unique([hTrackPad.Tracks.TableData.Ancestor_ID{:}]);
                     clones=arrayfun(@(x) ['Pedigree ' num2str(x)],clones,'UniformOutput',0);
                     hTrackPad.TrackPanel.ClonesPopup.String=clones;
                 end
@@ -1743,7 +1777,7 @@ classdef TrackPad < handle
                         CellTrackCollection.CurrentTrackID=TrackID;
                         PedigreeID=hTrackPad.Tracks.TableData.Ancestor_ID(i);
                         ProgenyID=hTrackPad.Tracks.TableData.Progeny_ID(i);
-                        displaystring={['Pedigree ' num2str(PedigreeID)] ['Track ' num2str(ProgenyID)]};
+                        displaystring={['Pedigree ' num2str(PedigreeID{:})] ['Track ' num2str(ProgenyID{:})]};
                         displaystring=textwrap(hTrackPad.TrackPanel.CurrentTrackDisplay,displaystring);
                         hTrackPad.TrackPanel.CurrentTrackDisplay.String=displaystring;
                         hTrackPad.TrackPanel.CurrentTrackDisplay.ForegroundColor='green';
@@ -1787,7 +1821,7 @@ classdef TrackPad < handle
             hTrackPad.Tracks.TableData=SubTable(hTrackPad.Tracks); %update tabledata
             
             %update track panel
-            clones=unique(hTrackPad.Tracks.TableData.Ancestor_ID);
+            clones=unique([hTrackPad.Tracks.TableData.Ancestor_ID{:}]);
             clones=arrayfun(@(x) ['Pedigree ' num2str(x)],clones,'UniformOutput',0);
             hTrackPad.TrackPanel.ClonesPopup.String=clones;
         end
@@ -1817,11 +1851,20 @@ classdef TrackPad < handle
             hTrackPad.ImageContextMenu.ContinueTrack.Visible='off';
             hTrackPad.ImageContextMenu.StopTrack.Visible='off';
             hTrackPad.ImageContextMenu.DeleteTrack.Visible='off';
+            
+            hTrackPad.Tracks.TableData=SubTable(hTrackPad.Tracks); %update tabledata
+            pedigree_id=hTrackPad.Tracks.TableData.Ancestor_ID{CurrentTrackID};
+            progeny_id=hTrackPad.Tracks.TableData.Progeny_ID{CurrentTrackID};
+            n=find(cellfun(@(x) ~isempty(x),hTrackPad.Track.Track),1,'first');
+            m=find(cellfun(@(x) ~isempty(x),hTrackPad.Track.Track),1,'last');            
+            for i=(n+1):(m-1)
+                hTrackPad.Track.Track{i}.Annotation.Type.PedigreeID=['Pedigree ' num2str(pedigree_id) ' Track ' num2str(progeny_id)];
+                hTrackPad.Track.Track{i}.Annotation.Symbol.PedigreeID=['P' num2str(pedigree_id) 'Tr' num2str(progeny_id)];
+            end            
+
             delete(src);
             hTrackPad.AnnotationFigureHandle=[];
             hTrackPad.Track=[];
-            hTrackPad.Tracks.TableData=SubTable(hTrackPad.Tracks); %update tabledata
-            
         end
         
         function getParent(hObject,EventData,TrackID,CellTrackCollection)
@@ -1884,14 +1927,15 @@ classdef TrackPad < handle
         
         
         function openTrackTable(Object,EventData,hTrackPad)
+%             CreateTable(hTrackPad.Tracks);
             hTrackPad.TrackTable=TrackTable;
             hTrackPad.TrackTable.CntrlObj=hTrackPad;
+            hTrackPad.TrackTable.TableData=SubTable(hTrackPad.Tracks);
 %             hTrackPad.TrackTable.TableData=hTrackPad.Tracks.TableData;
-            hTrackPad.TrackTable.TableData=CreateSubTable(hTrackPad.Tracks.tbl);
-            pedigreestructure=CreateCloneFiles(hTrackPad.TrackTable.TableData,hTrackPad.Tracks.tbl,...
-                hTrackPad.ImageStack.AcquisitionTimes);
-            hTrackPad.TrackTable.PedigreeData=pedigreestructure;
-            %             hTrackPad.TrackTable.Tracks=SubTable(hTrackPad.TrackTable);
+%             hTrackPad.TrackTable.TableData=CreateSubTable(hTrackPad.Tracks.tbl);
+%             pedigreestructure=CreateCloneFiles(hTrackPad.TrackTable.TableData,hTrackPad.Tracks.tbl,...
+%                 hTrackPad.ImageStack.AcquisitionTimes);
+%             hTrackPad.TrackTable.PedigreeData=pedigreestructure;
             CreateTrackTable(hTrackPad.TrackTable);
         end
         
@@ -1906,14 +1950,51 @@ classdef TrackPad < handle
                     annotationdisplayhandle(i).Checked='off';
                 end
             end
+            
+            if strcmp(EventData.Source.Label,'None')               
+               annotation_handles=findobj(gcf,'Type','Text');
+               delete(annotation_handles);
+            elseif ~strcmp(EventData.Source.Label,'None')
+               annotation_handles=findobj(gcf,'Type','Text');
+               delete(annotation_handles);   
+               n=length(hTrackPad.Tracks.Tracks);
+               m=hTrackPad.ImageStack.CurrentNdx;
+               
+               for i=1:n
+                   if ~isempty(hTrackPad.Tracks.Tracks(i).Track.Track{m})
+                    x=hTrackPad.Tracks.Tracks(i).Track.Track{m}.Position(1,1)+hTrackPad.Tracks.Tracks(i).Track.Track{m}.Position(1,3)/2;
+                    y=hTrackPad.Tracks.Tracks(i).Track.Track{m}.Position(1,2)+hTrackPad.Tracks.Tracks(i).Track.Track{m}.Position(1,4)/2;
+                    if (m==hTrackPad.Tracks.Tracks(i).Track.trackrange(1)|| m==hTrackPad.Tracks.Tracks(i).Track.trackrange(2))
+                    hTrackPad.Tracks.Tracks(i).Track.Track{m}.AnnotationHandle=text(x,y,...
+                                hTrackPad.Tracks.Tracks(i).Track.Track{m}.Annotation.Symbol,...
+                                'HorizontalAlignment','center','PickableParts','none',...
+                                'Clipping','on','FontAngle','oblique','Visible','On','Color','g');                        
+                    elseif sum(m~=hTrackPad.Tracks.Tracks(i).Track.trackrange)==2
+                    hTrackPad.Tracks.Tracks(i).Track.Track{m}.AnnotationHandle=text(x,y,...
+                                hTrackPad.Tracks.Tracks(i).Track.Track{m}.Annotation.Symbol.(hTrackPad.AnnotationDisplay),...
+                                'HorizontalAlignment','center','PickableParts','none',...
+                                'Clipping','on','FontAngle','oblique','Visible','On','Color','g');
+                    end
+                    
+                    if i~=hTrackPad.Tracks.CurrentTrackID
+                        set(hTrackPad.Tracks.Tracks(i).Track.Track{m}.AnnotationHandle,'Color',[0,1,0],'PickableParts','all');
+                     elseif i==hTrackPad.Tracks.CurrentTrackID
+                        set(hTrackPad.Tracks.Tracks(i).Track.Track{m}.AnnotationHandle,'Color',[1,0,0],'PickableParts','all');
+                     end
+                    end
+                   
+               end
+               
+            end
+            
         end
         
         function ChooseTrack(Object,EventData,hTrackPad)
             value=EventData.Source.Value;
             progenyid=sscanf(EventData.Source.String{value},'Track %d');
             lineageid=sscanf(hTrackPad.TrackPanel.ClonesPopup.String{hTrackPad.TrackPanel.ClonesPopup.Value},'Pedigree %d');
-            trackid=find((hTrackPad.Tracks.TableData.Ancestor_ID==lineageid &...
-                hTrackPad.Tracks.TableData.Progeny_ID==progenyid));
+            trackid=find(([hTrackPad.Tracks.TableData.Ancestor_ID{:}]==lineageid &...
+                [hTrackPad.Tracks.TableData.Progeny_ID{:}]==progenyid));
             hTrackPad.Tracks.CurrentTrackID=trackid;
             displaystring={['Pedigree ' num2str(lineageid)] ['Track ' num2str(progenyid)]};
             displaystring=textwrap(hTrackPad.TrackPanel.CurrentTrackDisplay,displaystring);
@@ -1926,8 +2007,8 @@ classdef TrackPad < handle
         function ChooseClone(Object,EventData,hTrackPad)
             value=EventData.Source.Value;
             cloneid=sscanf(EventData.Source.String{value},'Pedigree %d');
-            ndx=hTrackPad.Tracks.TableData.Ancestor_ID==cloneid;
-            progenyid=sort(hTrackPad.Tracks.TableData.Progeny_ID(ndx));
+            ndx=[hTrackPad.Tracks.TableData.Ancestor_ID{:}]==cloneid;
+            progenyid=sort([hTrackPad.Tracks.TableData.Progeny_ID{ndx}]);
             progenyid=arrayfun(@(x) ['Track ' num2str(x)],progenyid,'UniformOutput',0);
             hTrackPad.TrackPanel.TracksPopup.String=progenyid;
             hTrackPad.TrackPanel.TracksPopup.Value=1;
@@ -1950,13 +2031,11 @@ classdef TrackPad < handle
         end
         
         
-        function OptimiseRho (Object,EventData,hTrackPad)
-            
-            disp('here');
+        function AvatarOptimisation (Object,EventData,hTrackPad)
            
             
             if length(hTrackPad.Tracks.Tracks)<5
-                errordlg('Minimum of 5 tracks required for optimisation');
+                errordlg('Minimum of 6 tracks required for optimisation');
                 uiwait();
             else
                 
@@ -1982,8 +2061,13 @@ classdef TrackPad < handle
                 %delete existing avatar track files if they exist
                 avatarpath=[hTrackPad.TrackPath 'AvatarTracks'];
                 if isdir(avatarpath)
-                    rmdir(avatarpath);
+                    rmdir(avatarpath,'s');
                 end
+                
+                %remove annotation text and set annotation to None
+                annotation_handles=findobj(gcf,'Type','Text');
+                delete(annotation_handles);
+                hTrackPad.AnnotationDisplay='None';
                 
                 %first optimise search radius by evaluating the precision
                 %with rho=0 (true positives/total outcomes)
@@ -1995,6 +2079,7 @@ classdef TrackPad < handle
                     Avatar1.SimulateTracking;
                     Avatar1.SaveTracks;
                     delete(Avatar1);
+                    clear Avatar1;
                 end
                 
                 
@@ -2038,9 +2123,7 @@ classdef TrackPad < handle
                 
                 [TruthSet,ROCtbl]=AnalyseAvatarTracks(truthtable,avatartrackfiles,avatarpath);
                 [rho_optimum,~]=AnalyseROC(TruthSet,ROCtbl);
-                
-                
-                
+                               
                 %update tracking parameters 
                 
                  hTrackPad.CurrentTrackingParameters.CorrelationThreshold=rho_optimum;
