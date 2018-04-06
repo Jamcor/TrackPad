@@ -84,7 +84,7 @@ classdef TrackCollection < handle
                 obj.TableData=SubTable(obj);
                 
                 %update track panel
-                hTrackPad.TrackPanel.ClonesPopup.String=mat2cell(hTrackPad.Tracks.TableData.Ancestor_ID,...
+                hTrackPad.TrackPanel.ClonesPopup.String=mat2cell([hTrackPad.Tracks.TableData.Ancestor_ID{:}],...
                     length(hTrackPad.Tracks.TableData.Ancestor_ID),1);
             else
                 %default annotation
@@ -157,6 +157,81 @@ classdef TrackCollection < handle
             notify(obj,'AppendedTrackEvent');
         end
         
+        function AppendEditedTrack(obj,hObject,EventData)
+            % appends track to trackcollection
+            hTrackPad=obj.CntrlObj;
+            axes(hTrackPad.ImageHandle.Parent); % make sure text is written in trackpad.
+            CurrentNdx=hTrackPad.ImageStack.CurrentNdx;
+            CurrentTrackID=hTrackPad.Tracks.CurrentTrackID;
+            %default annotation
+                obj.Tracks(CurrentTrackID).Track=obj.CurrentTrack;
+                delete(obj.Tracks(CurrentTrackID).Track.PauseListenerHandle);
+                delete(obj.Tracks(CurrentTrackID).Track.StopListenerHandle);
+                n=find(cellfun(@(x) ~isempty(x),obj.Tracks(CurrentTrackID).Track.Track),1,'first');
+                m=find(cellfun(@(x) ~isempty(x),obj.Tracks(CurrentTrackID).Track.Track),1,'last');
+                obj.Tracks(CurrentTrackID).Track.trackrange=[n,m];
+                if n<m % don't want to write AN and NC on the same cells
+%                     obj.Tracks(CurrentTrackID).Track.Track{n}.Annotation.Name=hTrackPad.CellProperties(1).Name;
+%                     obj.Tracks(CurrentTrackID).Track.Track{n}.Annotation.Type=hTrackPad.CellProperties(1).Type{1};
+%                     obj.Tracks(CurrentTrackID).Track.Track{n}.Annotation.Symbol=hTrackPad.CellProperties(1).Symbol{1};
+                    Position=obj.Tracks(CurrentTrackID).Track.Track{n}.Position;
+                    x=Position(1)+Position(3)/2;
+                    y=Position(2)+Position(4)/2;
+%                     obj.Tracks(CurrentTrackID).Track.Track{n}.AnnotationHandle=[];
+                    %                     obj.Tracks(end).Track.Track{n}.AnnotationHandle=text(x,y,...
+                    %                         hTrackPad.CellProperties(1).Symbol{1},...
+                    %                         'Color','g','HorizontalAlignment','center','Visible','off','PickableParts','none');
+                    if n==CurrentNdx
+                        obj.Tracks(CurrentTrackID).Track.Track{n}.AnnotationHandle=text(x,y,...
+                            hTrackPad.CellProperties(1).Symbol{1},...
+                            'Color','g','HorizontalAlignment','center','Visible','on','PickableParts','none');
+                        %                         obj.Tracks(end).Track.Track{n}.AnnotationHandle.Visible='on';
+                    end
+                end
+                % Annotated fate as Not complete by default
+                obj.Tracks(CurrentTrackID).Track.Track{m}.Annotation.Name=hTrackPad.CellProperties(2).Name;
+                obj.Tracks(CurrentTrackID).Track.Track{m}.Annotation.Type=hTrackPad.CellProperties(2).Type{1};
+                obj.Tracks(CurrentTrackID).Track.Track{m}.Annotation.Symbol=hTrackPad.CellProperties(2).Symbol{1};
+                Position=obj.Tracks(CurrentTrackID).Track.Track{m}.Position;
+                x=Position(1)+Position(3)/2;
+                y=Position(2)+Position(4)/2;
+                obj.Tracks(CurrentTrackID).Track.Track{m}.AnnotationHandle=text(x,y,...
+                    hTrackPad.CellProperties(2).Symbol{1},...
+                    'Color','g','HorizontalAlignment','center','Visible','off','PickableParts','none');
+                if m==CurrentNdx
+                    obj.Tracks(CurrentTrackID).Track.Track{m}.AnnotationHandle.Visible='on';
+                end
+%                 obj.Tracks(CurrentTrackID).Parent=[]; % no parent at this stage
+%                 obj.Tracks(CurrentTrackID).ParentID=[];
+                % Annotate all other cells as NA (No Annotation)
+                fnames=fieldnames(hTrackPad.CellProperties(3).Type);
+                for i=(n+1):(m-1)
+                    obj.Tracks(CurrentTrackID).Track.Track{i}.Annotation.Name=fnames;
+                    obj.Tracks(CurrentTrackID).Track.Track{i}.Annotation.Type=structfun(@(x) x{1},hTrackPad.CellProperties(3).Type,'UniformOutput',0);
+                    obj.Tracks(CurrentTrackID).Track.Track{i}.Annotation.Symbol=structfun(@(x) x{1},hTrackPad.CellProperties(3).Symbol,'UniformOutput',0);
+                    Position=obj.Tracks(CurrentTrackID).Track.Track{i}.Position;
+                    x=Position(1)+Position(3)/2;
+                    y=Position(2)+Position(4)/2;
+                    obj.Tracks(CurrentTrackID).Track.Track{i}.AnnotationHandle=text(x,y,...
+                        hTrackPad.CellProperties(3).Symbol.(fnames{1}){1},...
+                        'Color','g','HorizontalAlignment','center','Visible','off','PickableParts','none');
+                    if i==CurrentNdx
+                        obj.Tracks(CurrentTrackID).Track.Track{i}.AnnotationHandle.Visible='on';
+                    end
+                end
+            obj.TableData=SubTable(obj);
+            pedigree_id=obj.TableData.Ancestor_ID{CurrentTrackID};
+            progeny_id=obj.TableData.Progeny_ID{CurrentTrackID};
+            for i=(n+1):(m-1)
+                obj.Tracks(CurrentTrackID).Track.Track{i}.Annotation.Type.PedigreeID=['Pedigree ' num2str(pedigree_id) ' Track ' num2str(progeny_id)];
+                obj.Tracks(CurrentTrackID).Track.Track{i}.Annotation.Symbol.PedigreeID=['P' num2str(pedigree_id) 'Tr' num2str(progeny_id)];
+            end
+            
+            obj.CurrentTrack=[]; % reset
+            obj.CurrentTrackID=0;
+            notify(obj,'AppendedTrackEvent');
+        end
+        
         function Remove(obj,hObject,EventData)
             % removes CurrentTrack, and reindexes TrackCollection
             if obj.CurrentTrackID<length(obj.Tracks)
@@ -191,7 +266,7 @@ classdef TrackCollection < handle
                 Image_Number=obj.tbl.Image_Number{i};
                 range=[Image_Number(1),Image_Number(end)];
                 Position=obj.tbl.Position{i}; %get position of track i in first frame
-                Cell_Image=obj.tbl.Cell_Image{i};
+%                 Cell_Image=obj.tbl.Cell_Image{i};
                 %                  Mask=obj.tbl.Mask{i};
                 Annotation=struct('Name',obj.tbl.Annotation_Name{i},'Type',obj.tbl.Annotation_type{i},...
                     'Symbol',obj.tbl.Annotation_Symbol{i});
@@ -207,7 +282,7 @@ classdef TrackCollection < handle
                 obj.CntrlObj.CurrentTrackingParameters.SearchRadius=obj.tbl.SearchRadius{i};
                 obj.CntrlObj.CurrentTrackingParameters.CorrelationThreshold=obj.tbl.CorrelationThreshold{i};
                 obj.CntrlObj.Track=tracker(range,hellipse,obj.CntrlObj);
-                %delete listeners (track won't be modified)
+                %delete listeners (listeners are re-instated if track is edited)
                 delete(obj.CntrlObj.Track.EndTrackListener);
                 delete(obj.CntrlObj.Track.LostCellListener);
                 delete(obj.CntrlObj.Track.StopListenerHandle);

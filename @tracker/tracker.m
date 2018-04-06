@@ -7,6 +7,7 @@ classdef tracker < handle
         parameters
         method='correlation';
         useGPU=true;
+        Editing %logical to indicate if track is currently being edited by the user
         
        
         %tracking control
@@ -39,7 +40,7 @@ classdef tracker < handle
     end
     
     
-    methods           
+    methods (Static)      
         %constructor
         function obj=tracker(range,hellipse,GUIHandle)
             % stack is a ImageStack object,
@@ -55,6 +56,7 @@ classdef tracker < handle
             end
             obj.trackrange=range;
             obj.GUIHandle=GUIHandle;
+            obj.Editing=false;
             % intialize startrectangle
             p.isParallel=GUIHandle.isParallel;
             p.startrectangle=round(getPosition(hellipse));             
@@ -90,9 +92,10 @@ classdef tracker < handle
             % obj - instance of this class
              % src - object generating event,i.e. TrackPad object
             %  evnt - the event data
-
-            src.Track.Interrupt=true;
-            src.Track.FindCellState='pause';
+            obj.Track.Interrupt=true;
+            obj.Track.FindCellState='pause';
+%             src.Track.Interrupt=true;
+%             src.Track.FindCellState='pause';
             %             obj.Interrupt=true;
             %             obj.FindCellState='pause';
         end
@@ -103,7 +106,10 @@ classdef tracker < handle
             obj.Interrupt=true;
             obj.FindCellState='stop';
         end
-              
+        
+    end
+    %end of static methods
+      methods        
         function forward(obj)
             
             while (~obj.Interrupt) 
@@ -137,8 +143,8 @@ classdef tracker < handle
                             end
                         end
                         
-%                         set(obj.CurrentEllipse,'Visible','off'); 
-                        delete(obj.CurrentEllipse); 
+                        set(obj.CurrentEllipse,'Visible','off'); 
+%                         delete(obj.CurrentEllipse); 
 
                         
                         obj.CurrentEllipse=imellipse(obj.GUIHandle.ImageHandle.Parent,Result.pos);
@@ -152,9 +158,13 @@ classdef tracker < handle
 %                         obj.Track{obj.Stack.CurrentNdx}.SetCell; % using
 %                         ellipse tool to SetCell results in a drift error
                         SetCell(obj.Track{obj.Stack.CurrentNdx},Result.mask); % using the mask from findcell is more accurate and reliable
+                        if sum(size(obj.Track{obj.Stack.CurrentNdx}.CellIm)==size(obj.Track{obj.Stack.CurrentNdx-1}.CellIm))<2
+                            [r,c]=size(obj.Track{obj.Stack.CurrentNdx-1}.CellIm);
+                            obj.Track{obj.Stack.CurrentNdx}.CellIm=imresize(obj.Track{obj.Stack.CurrentNdx-1}.CellIm,[r c]);
+                        end
                         drawnow; % refresh screen
                         Result.FindCellState=obj.FindCellState; % update with find cell status (if cell found, remains in 'go' state)
-                        Result.mask=[];
+%                         Result.mask=[];
                         obj.Track{obj.Stack.CurrentNdx}.Result=Result;
                         setmemory(obj);
                         if obj.Interrupt
@@ -188,7 +198,7 @@ classdef tracker < handle
                 if ~isempty(obj.Track{i})
                     tr{i}.SelectionTime=obj.Track{i}.SelectionTime;
                     tr{i}.Mask=obj.Track{i}.Mask;
-                    tr{i}.CellIm=obj.Track{i}.CellIm;
+                    tr{i}=obj.Track{i}.CellIm;
                     tr{i}.ImageNumber=obj.Track{i}.ImageNumber;
                     tr{i}.Position=obj.Track{i}.Position;
                     tr{i}.Result=obj.Track{i}.Result;
@@ -244,7 +254,7 @@ function getrefimg(obj)
     if obj.trackrange(1)<obj.trackrange(2) % forward
         range=(obj.Stack.CurrentNdx-obj.parameters.NumberOfPriorImages):...
             (obj.Stack.CurrentNdx-1);
-        if length(range)>1
+        if length(range)>1 
             lastrho=obj.Track{range(end)}.Result.rho;
         end
     else
@@ -253,7 +263,7 @@ function getrefimg(obj)
             lastrho=obj.Track{range(1)}.Result.rho;
         end
     end
-    if length(range)>1
+    if length(range)>1 && (obj.trackrange(1)~=obj.Stack.CurrentNdx)
         % select method to average prior cell images
         switch(obj.parameters.RefImageProtocol)
             case 'Use memory'
@@ -286,17 +296,22 @@ function getrefimg(obj)
             otherwise
                 Error('Unrecognised method to average prior cell images');
         end
-    else
+    elseif length(range)<=1 && (obj.trackrange(1)==obj.Stack.CurrentNdx)
         try
         obj.parameters.refimg=obj.Track{range(1)}.CellIm; % first image of track - cannot use any memory so refimg is the first CellIm
         catch
-            disp('here');
+            disp('here1');
         end
+        
+    elseif length(range)<=1 && (obj.trackrange(1)~=obj.Stack.CurrentNdx)
+        lastimage=find(cellfun(@(x) ~isempty(x),obj.Track),1,'last');
+        try
+        obj.parameters.refimg=obj.Track{lastimage}.CellIm; % first image of track - cannot use any memory so refimg is the first CellIm
+        catch
+            disp('here2');
+        end
+        
     end   
-
-            
-    
-
 end
 
 

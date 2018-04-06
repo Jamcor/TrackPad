@@ -84,6 +84,7 @@ classdef TrackTable < handle
             row=EventData.Indices(1);
             hTrackPad=obj.CntrlObj;
             hTrackPad.Tracks.CurrentTrackID=cell2mat(obj.DisplayTableData(row,1));
+            hTrackPad.Track=hTrackPad.Tracks.Tracks(hTrackPad.Tracks.CurrentTrackID).Track;  
             PedigreeID=cell2mat(obj.DisplayTableData(row,2));
             ProgenyID=cell2mat(obj.DisplayTableData(row,3));
             displaystring={['Pedigree ' num2str(PedigreeID)] ['Track ' num2str(ProgenyID)]};

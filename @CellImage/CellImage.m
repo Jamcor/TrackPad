@@ -84,47 +84,47 @@ classdef CellImage < handle
             
         end
         
-        function obj=SelectCell(obj)
-           %Get input from user to set cell mask and image
-            delete(findobj('tag','imrect'));
-            h=imellipse(get(obj.ImageHandle,'Parent'),obj.ParentTracker.parameters.startrectangle);
-            setResizable(h,obj.Resize);
-            setColor(h,'r');
-            selecttimeID=tic; % time duration of user input
-            wait(h);
-            obj.SelectionTime=toc(selecttimeID);            
-
-            %generate mask for new position
-            BW=createMask(h,obj.ImageHandle); % bug here should only be applied if Stop=False,Paws=False
-            if isempty(obj.Mask)
-                obj.Mask=BW;
-                r=find(sum(BW,2)>0);
-                c=find(sum(BW,1)>0);
-                obj.ParentTracker.parameters.startrectangle=[c(1),r(1),c(end)-c(1)+1, r(end)-r(1)+1];
-            else
-                rows=find(sum(BW,2)>0);
-                cols=find(sum(BW,1)>0);
-                offset=[rows(1),cols(1)]; % find the offset for the new mask
-                %but needs to have the same shape as mask
-                rows=find(sum(obj.Mask,2)>0);
-                cols=find(sum(obj.Mask,1)>0);
-                SmallMask=obj.Mask(rows,cols);
-                obj.Mask(:)=false; %clear 
-                r=offset(1):(offset(1)+(length(rows)-1));
-                c=offset(2):(offset(2)+(length(cols)-1));
-                obj.Mask(r,c)=SmallMask;
-                % update ParentTracker.startrectange
-                obj.ParentTracker.parameters.startrectangle=[c(1),r(1),c(end)-c(1)+1, r(end)-r(1)+1];
-            end
-            Im=get(obj.ImageHandle,'cdata');
-            layers=size(Im,3);
-            bw=repmat(obj.Mask,[1,1,layers]);
-            Im(~bw)=NaN;
-            rows=find(sum(obj.Mask,2)>0);
-            cols=find(sum(obj.Mask,1)>0);
-            obj.CellIm=Im(rows,cols,:);
-            obj.Position=obj.ParentTracker.parameters.startrectangle;
-        end   
+%         function obj=SelectCell(obj)
+%            %Get input from user to set cell mask and image
+%             delete(findobj('tag','imrect'));
+%             h=imellipse(get(obj.ImageHandle,'Parent'),obj.ParentTracker.parameters.startrectangle);
+%             setResizable(h,obj.Resize);
+%             setColor(h,'r');
+%             selecttimeID=tic; % time duration of user input
+%             wait(h);
+%             obj.SelectionTime=toc(selecttimeID);            
+% 
+%             %generate mask for new position
+%             BW=createMask(h,obj.ImageHandle); % bug here should only be applied if Stop=False,Paws=False
+%             if isempty(obj.Mask)
+%                 obj.Mask=BW;
+%                 r=find(sum(BW,2)>0);
+%                 c=find(sum(BW,1)>0);
+%                 obj.ParentTracker.parameters.startrectangle=[c(1),r(1),c(end)-c(1)+1, r(end)-r(1)+1];
+%             else
+%                 rows=find(sum(BW,2)>0);
+%                 cols=find(sum(BW,1)>0);
+%                 offset=[rows(1),cols(1)]; % find the offset for the new mask
+%                 %but needs to have the same shape as mask
+%                 rows=find(sum(obj.Mask,2)>0);
+%                 cols=find(sum(obj.Mask,1)>0);
+%                 SmallMask=obj.Mask(rows,cols);
+%                 obj.Mask(:)=false; %clear 
+%                 r=offset(1):(offset(1)+(length(rows)-1));
+%                 c=offset(2):(offset(2)+(length(cols)-1));
+%                 obj.Mask(r,c)=SmallMask;
+%                 % update ParentTracker.startrectange
+%                 obj.ParentTracker.parameters.startrectangle=[c(1),r(1),c(end)-c(1)+1, r(end)-r(1)+1];
+%             end
+%             Im=get(obj.ImageHandle,'cdata');
+%             layers=size(Im,3);
+%             bw=repmat(obj.Mask,[1,1,layers]);
+%             Im(~bw)=NaN;
+%             rows=find(sum(obj.Mask,2)>0);
+%             cols=find(sum(obj.Mask,1)>0);
+%             obj.CellIm=Im(rows,cols,:);
+%             obj.Position=obj.ParentTracker.parameters.startrectangle;
+%         end   
 %         function set.CntrlObj(obj,value)
 %             obj.CntrlObj=value;
 %             addlistener(value,'HideEllipseEvent',@obj.listenHideEllipseEvent);
