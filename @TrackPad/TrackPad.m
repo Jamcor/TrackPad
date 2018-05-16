@@ -922,18 +922,18 @@ classdef TrackPad < handle
             x=[x-200,x+200]; y=[y-200,y+200];
             if x(1)<1
                 x(1)=1;
-            elseif x(2)>1392
-                x(2)=1392;
+            elseif x(2)>size(hTrackPad.ImageHandle.CData,2)
+                x(2)=size(hTrackPad.ImageHandle.CData,2);
             end
             if y(2)<1
                 y(1)=1;
-            elseif y(2)>1040
-                y(2)=1040;
+            elseif y(2)>size(hTrackPad.ImageHandle.CData,1)
+                y(2)=size(hTrackPad.ImageHandle.CData,1);
             end
             zoomdata=getappdata(gca, 'matlab_graphics_resetplotview');
             if ~isempty(zoomdata)
-                zoomdata.XLim=[0.5000 1.3925e+03];
-                zoomdata.YLim=[0.5000 1.0405e+03];
+                zoomdata.XLim=[0.5000 size(hTrackPad.ImageHandle.CData,2)];
+                zoomdata.YLim=[0.5000 size(hTrackPad.ImageHandle.CData,2)];
                 setappdata(gca, 'matlab_graphics_resetplotview',zoomdata);
             else
                 zoom reset
@@ -977,21 +977,25 @@ classdef TrackPad < handle
             hTrackPad.ImageStack.LastNdx=hTrackPad.ImageStack.CurrentNdx;
             hTrackPad.ImageStack.CurrentNdx=endframe;
             x=position(1); y=position(2);
+            
             x=[x-200,x+200]; y=[y-200,y+200];
+            
             if x(1)<1
                 x(1)=1;
-            elseif x(2)>1392
-                x(2)=1392;
+            elseif x(2)>size(hTrackPad.ImageHandle.CData,2)
+                x(2)=size(hTrackPad.ImageHandle.CData,2);
             end
             if y(2)<1
                 y(1)=1;
-            elseif y(2)>1040
-                y(2)=1040;
+            elseif y(2)>size(hTrackPad.ImageHandle.CData,1)
+                y(2)=size(hTrackPad.ImageHandle.CData,1);
             end
             zoomdata=getappdata(gca, 'matlab_graphics_resetplotview');
             if ~isempty(zoomdata)
-                zoomdata.XLim=[0.5000 1.3925e+03];
-                zoomdata.YLim=[0.5000 1.0405e+03];
+                zoomdata.XLim=[0.5000 size(hTrackPad.ImageHandle.CData,2)];
+                zoomdata.YLim=[0.5000 size(hTrackPad.ImageHandle.CData,1)];
+%                 zoomdata.XLim=[0.5000 1.3925e+03];
+%                 zoomdata.YLim=[0.5000 1.0405e+03];
                 setappdata(gca, 'matlab_graphics_resetplotview',zoomdata);
             else
                 zoom reset
@@ -1999,18 +2003,18 @@ classdef TrackPad < handle
             x=[x-250,x+250]; y=[y-250,y+250];
             if x(1)<1
                 x(1)=1;
-            elseif x(2)>1392
-                x(2)=1392;
+            elseif x(2)>size(hTrackPad.ImageHandle.CData,2)
+                x(2)=size(hTrackPad.ImageHandle.CData,2);
             end
             if y(2)<1
                 y(1)=1;
-            elseif y(2)>1040
-                y(2)=1040;
+            elseif y(2)>size(hTrackPad.ImageHandle.CData,1)
+                y(2)=size(hTrackPad.ImageHandle.CData,1);
             end
             zoomdata=getappdata(gca, 'matlab_graphics_resetplotview');
             if ~isempty(zoomdata)
-                zoomdata.XLim=[0.5000 1.3925e+03];
-                zoomdata.YLim=[0.5000 1.0405e+03];
+                zoomdata.XLim=[0.5000 size(hTrackPad.ImageHandle.CData,2)];
+                zoomdata.YLim=[0.5000 size(hTrackPad.ImageHandle.CData,1)];
                 setappdata(gca, 'matlab_graphics_resetplotview',zoomdata);
             else
                 zoom reset
