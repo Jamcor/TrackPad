@@ -2130,17 +2130,21 @@ classdef TrackPad < handle
         
         
         function openTrackTable(Object,EventData,hTrackPad)
-%             CreateTable(hTrackPad.Tracks);
-            hTrackPad.TrackTable=TrackTable;
-            hTrackPad.TrackTable.CntrlObj=hTrackPad;
-            hTrackPad.TrackTable.TableData=SubTable(hTrackPad.Tracks);
-%             hTrackPad.TrackTable.TableData=hTrackPad.Tracks.TableData;
-%             hTrackPad.TrackTable.TableData=CreateSubTable(hTrackPad.Tracks.tbl);
-%             pedigreestructure=CreateCloneFiles(hTrackPad.TrackTable.TableData,hTrackPad.Tracks.tbl,...
-%                 hTrackPad.ImageStack.AcquisitionTimes);
-%             hTrackPad.TrackTable.PedigreeData=pedigreestructure;
-            CreateTrackTable(hTrackPad.TrackTable);
+            if isempty(hTrackPad.Tracks)
+                warndlg('No tracks','Warning','modal');
+                
+            elseif ~isempty(hTrackPad.Tracks) && isempty(hTrackPad.Tracks.tbl)
+                warndlg('Save tracks before opening track table','Warning','modal');
+            else
+                hTrackPad.TrackTable=TrackTable;
+                hTrackPad.TrackTable.CntrlObj=hTrackPad;
+                hTrackPad.TrackTable.TableData=SubTable(hTrackPad.Tracks);
+                hTrackPad.TrackTable.PedigreeData=CreateCloneFiles(hTrackPad.TrackTable.TableData,hTrackPad.Tracks.tbl,...
+                    hTrackPad.ImageStack.AcquisitionTimes);
+                CreateTrackTable(hTrackPad.TrackTable);
+            end
         end
+    
         
         
         function ChangeAnnotationDisplay(Object,EventData,hTrackPad)
