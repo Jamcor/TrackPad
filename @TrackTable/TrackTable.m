@@ -40,6 +40,8 @@ classdef TrackTable < handle
                 'Callback',{@obj.getTrajectories,obj});
             uimenu(ExportMenuHandle,'Label','Pedigree data',...
                 'Callback',{@obj.getPedigreeData,obj});
+            uimenu(ExportMenuHandle,'Label','Annotations',...
+                'Callback',{@obj.getAnnotations,obj});            
             uimenu(ExportMenuHandle,'Label','Cell image patches',...
                 'Callback',{@obj.getCellImages,obj});
             
@@ -84,7 +86,7 @@ classdef TrackTable < handle
             row=EventData.Indices(1);
             hTrackPad=obj.CntrlObj;
             hTrackPad.Tracks.CurrentTrackID=cell2mat(obj.DisplayTableData(row,1));
-            hTrackPad.Track=hTrackPad.Tracks.Tracks(hTrackPad.Tracks.CurrentTrackID).Track;  
+            hTrackPad.Track=hTrackPad.Tracks.Tracks(hTrackPad.Tracks.CurrentTrackID).Track;
             PedigreeID=cell2mat(obj.DisplayTableData(row,2));
             ProgenyID=cell2mat(obj.DisplayTableData(row,3));
             displaystring={['Pedigree ' num2str(PedigreeID)] ['Track ' num2str(ProgenyID)]};
@@ -116,7 +118,7 @@ classdef TrackTable < handle
         function getPedigreeData(hObject,EventData,hTrackTable)
             
             %get fate outcomes as numeric code
-            for i=1:length(hTrackTable.TableData.Fate)  
+            for i=1:length(hTrackTable.TableData.Fate)
                 switch hTrackTable.TableData.Fate{i}
                     case 'DI'
                         hTrackTable.TableData.FateNumber(i)=1;
@@ -124,7 +126,7 @@ classdef TrackTable < handle
                         hTrackTable.TableData.FateNumber(i)=2;
                     case 'NC'
                         hTrackTable.TableData.FateNumber(i)=0;
-                end      
+                end
             end
             hTrackTable.TableData.FateNumber=hTrackTable.TableData.FateNumber';
             hTrackTable.TableData.Parent_ID=hTrackTable.TableData.Parent_ID';
@@ -140,7 +142,7 @@ classdef TrackTable < handle
             %get annotations
             fnames=fieldnames(hTrackTable.TableData);
             fnames=fnames(7:end-1);
-            annotationtable=hTrackTable.DisplayTableData(:,7:end);          
+            annotationtable=hTrackTable.DisplayTableData(:,7:end);
             %assemble all pedigree data
             pedigreedata=[[hTrackTable.TableData.Track_ID{:}]',[hTrackTable.TableData.Parent_ID{:}]',...
                 [hTrackTable.TableData.Ancestor_ID{:}]',[hTrackTable.TableData.Progeny_ID{:}]',...
@@ -159,10 +161,12 @@ classdef TrackTable < handle
                 stringrowdata=annotationtable(i,:);
                 fprintf(fid,'%f,',numericalrowdata(1:end));
                 fprintf(fid,'%s,',stringrowdata{1:end-1});
-                fprintf(fid,'%s\n',stringrowdata{end}); 
-%               fprintf(fid,'%f\n',rowdata(end));
+                fprintf(fid,'%s\n',stringrowdata{end});
+                %               fprintf(fid,'%f\n',rowdata(end));
             end
             fclose(fid);
+                        
+            
         end
         
         
@@ -175,7 +179,7 @@ classdef TrackTable < handle
             distancetable=zeros(length(timestamps),1);
             condition='condition';
             for i=1:length(hTrackTable.TableData.Track_ID)
-                disp([num2str(i)]);
+                %                 disp([num2str(i)]);
                 
                 T=timestamps(hTrackTable.CntrlObj.Tracks.tbl.Image_Number{i});
                 T=(T-T(1))';
@@ -210,6 +214,58 @@ classdef TrackTable < handle
             fclose(fid);
         end
         
+        function getAnnotations(hObject,EventData,hTrackTable)
+            [filename,pathname]=uiputfile('*.txt','Save annotation data as');
+
+            annotations=fieldnames(hTrackTable.CntrlObj.CellProperties(3).String);
+            ndx=cellfun(@(x) ~strcmp(x,'PedigreeID'),annotations);
+            annotations=annotations(ndx); %remove PedigreeID
+            numb_tracks=length(hTrackTable.CntrlObj.Tracks.Tracks);
+            track=struct();
+            for i=1:numb_tracks
+            
+            firstframe=hTrackTable.CntrlObj.Tracks.Tracks(i).Track.trackrange(1);
+            lastframe=hTrackTable.CntrlObj.Tracks.Tracks(i).Track.trackrange(2);
+            times=hTrackTable.CntrlObj.ImageStack.AcquisitionTimes(firstframe:lastframe)-hTrackTable.CntrlObj.ImageStack.AcquisitionTimes(firstframe);
+            track(i).timestamps=times(2:end-1); %dont' include first and last time point (no annotations for these timepoints)
+            for j=1:length(annotations)
+                
+                if i==1
+                setfield(track(i),annotations{j},[]);
+                end
+                track(i).(annotations{j})=cell(1,range(firstframe:lastframe)-1);
+                count=1;
+                
+                for k=(firstframe+1):(lastframe-1)
+                track(i).(annotations{j}){count}=hTrackTable.CntrlObj.Tracks.Tracks(i).Track.Track{k}.Annotation.Symbol.(annotations{j});
+                count=count+1;
+                end
+            end
+            
+            end
+            numb_annotations=length(hTrackTable.CntrlObj.ImageStack.AcquisitionTimes-2);
+            for i=1:length(hTrackTable.TableData.Track_ID)
+                
+                T=track(i).timestamps';
+                T(end+1:numb_annotations)=NaN;
+                AnnotationTable=[table(zeros(numb_annotations,1),'VariableNames',{'Time'})...
+                    cell2table(repmat(cell(numb_annotations,1),1,length(annotations)),'VariableNames',annotations')];
+                AnnotationTable.Time=T;
+                for j=1:length(annotations)
+                    feature=track(i).(annotations{j})';
+                    feature(end+1:numb_annotations)={NaN};
+                    AnnotationTable.(annotations{j})=feature;
+                end
+                AnnotationTable.Properties.VariableNames=strcat(['Track_' num2str(i) '_'], ['Time' annotations']);
+                if i==1
+                   FinalTable=AnnotationTable; 
+                elseif i>1
+                    FinalTable=[FinalTable AnnotationTable];
+                end
+            end
+            writetable(FinalTable,[pathname filename]); 
+        end
+        
         
         function getCellImages(hObject,EventData,hTrackTable)
             allclones=hTrackTable.PedigreeData;
@@ -229,6 +285,8 @@ classdef TrackTable < handle
             
         end
                 
+
+        
     end
     
 end
