@@ -15,9 +15,9 @@ Dr James Cornwell @ the University of Sydney has contributed to GUI development,
 *Image stack saved as .tif files (recommended max. 20 min acquisition frequency)
 
 # General description
-TrackPad is a software tool implemented in MATLAB that is used to track single cells (or any moving object) from time-lapse image stacks. 
+TrackPad is a software tool implemented in MATLAB that is used to track single cells (or any moving object) from time-lapse image stacks. TrackPad is modular software coded using an object oriented programming (OOP) design. 
 
-![alt text](https://github.com/Jamcor/TrackPad/blob/master/TrackPad%20Object%20Programming%20Design.tif)
+![trackpad object programming design](https://user-images.githubusercontent.com/14284911/40521697-4407e1be-6010-11e8-94a2-5ae70b12d377.png)
 
 # How to track cells
 1. User loads an image stack of .tif files and adjust image properties using a Channel Mixing tool. Up to 3 different colours can     be loaded.
@@ -34,4 +34,4 @@ COLO316 cell line. 20 min acquisition frequency over 72hrs. 20x objective. 3x3 c
 
 Any questions should be directed to Dr Robert Nordon (r.nordon@unsw.edu.au) or Dr James Cornwell (james.cornwell@sydney.edu.au)
 
-February 2018
+May 2018
