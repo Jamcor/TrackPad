@@ -67,7 +67,8 @@ for h=1:length(clonenumb)
             writeVideo(writerObj,grayim);
             %save image as .tiff
             frameid=find(relframeid==1);
-            imwrite(grayim,[path subpath '\Frame ' num2str(frameid) '.tif']);
+            timestamp=datestr(clone{currentclone}.track{tracknumb(i)}.T(frameid));
+            imwrite(grayim,[path subpath '\Frame ' num2str(frameid) '.tif'],'Description',timestamp);
         end
         close(writerObj);
     end

@@ -26,7 +26,13 @@ for i=1:length(allclones) %loop through conditions
     %file
     
     cond_clone = allclones{i}; %get clones from first condition
+    
+    if isfield(cond_clone{1},'TimeStamps')
     condition(i).TimeStamps=cond_clone{1}.TimeStamps;
+    elseif isfield(cond_clone{1},'timestamps')
+    condition(i).TimeStamps=cond_clone{1}.timestamps;
+    end
+    
     for j =1:length(cond_clone) %loop through all clones
         disp(['Clone  ' num2str(j)]);
         
@@ -180,31 +186,4 @@ end
 return
 end
 
-% function [pval,z]=rayleightest(alpha)
-% if size(alpha,2) > size(alpha,1)
-%     alpha = alpha';
-% end
-% 
-% if nargin < 2
-%     r =  circ_r(alpha);
-%     n = length(alpha);
-% else
-%     if length(alpha)~=length(w)
-%         error('Input dimensions do not match.')
-%     end
-%     if nargin < 3
-%         d = 0;
-%     end
-%     r =  circ_r(alpha,w(:),d);
-%     n = sum(w);
-% end
-% 
-% % compute Rayleigh's R (equ. 27.1)
-% R = n*r;
-% 
-% % compute Rayleigh's z (equ. 27.2)
-% z = R^2 / n;
-% 
-% % compute p value using approxation in Zar, p. 617
-% pval = exp(sqrt(1+4*n+4*(n^2-R^2))-(1+2*n));
-% end
+

@@ -12,8 +12,6 @@ classdef avatar< handle
         Tracks=[];
         tol=2; % tolerance in pixels
         ImageStack
-        MaxFrames; %maximum number of frames used for avatar optimisation
-        MaxTracks;
     end
     
     events
@@ -42,7 +40,7 @@ classdef avatar< handle
         end
         function SimulateTracking(obj)
 %              for i=191:height(obj.TruthTable)
-            for i=1:obj.MaxTracks
+            for i=1:1
                 if isnan(obj.NucleusRadius) % use truthset
                     obj.GUIHandle.CurrentTrackingParameters.NucleusRadius=...
                         round(mean(obj.TruthTable.Position{i}(1,3:4))); % use truthset radius
@@ -170,13 +168,25 @@ classdef avatar< handle
             ndx=obj.TruthTable.Image_Number{TrackID}==FrameID;
             CorrectPosition=obj.TruthTable.Position{TrackID}(ndx,:);
             CurrentPosition=getPosition(src.CurrentEllipse);
+            CorrectPosition(3)=CurrentPosition(3);                
+            CorrectPosition(4)=CurrentPosition(4);
             setPosition(src.CurrentEllipse,CorrectPosition); %add annotation from GUIHandle.Tracks
             src.Track{FrameID}.Annotation=...
                 obj.GUIHandle.Tracks.Tracks(TrackID).Track.Track{FrameID}.Annotation;
             src.Track{FrameID}.AnnotationHandle=...
                 obj.GUIHandle.Tracks.Tracks(TrackID).Track.Track{FrameID}.AnnotationHandle;
+            
+            %correct position if there is a tracking error and generate
+            %a PauseEvent
+%             IsTrackingError=sqrt((CorrectPosition(1)-CurrentPosition(1))^2+...
+%                 (CorrectPosition(2)-CurrentPosition(2))^2)>obj.tol;
+%            if IsTrackingError
+%             obj.Track.FindCellState='pause';
+%             disp('Pausing');
+%            end
             obj.Track.Track{FrameID}.EllipseHandle=src.CurrentEllipse; % need to correct position in track!
-            src.Track{FrameID}.Position=CorrectPosition;
+            src.Track{FrameID}.Position(3)=CorrectPosition(3);
+            src.Track{FrameID}.Position(4)=CorrectPosition(4);
             % need to update mask because next interation of find cell uses
             % this updated mask.
             ChangeInPosition=CorrectPosition-CurrentPosition;
@@ -197,16 +207,14 @@ classdef avatar< handle
             newCellIm(:)=im(src.Track{FrameID}.Mask);
             newCellIm(b)=NaN;
             src.Track{FrameID}.CellIm=newCellIm;
-%             if obj.TruthTable.Image_Number{TrackID}(end)==FrameID
-%                 obj.StopTrack(src,evnt);
-%             else % continue tracking
-%                 obj.ContinueTrack(src,evnt);
-%             end
-            if find(ndx)==obj.MaxFrames || length(ndx)==find(ndx)
+            
+            if obj.TruthTable.Image_Number{TrackID}(end)==FrameID
                 obj.StopTrack(src,evnt);
             else % continue tracking
                 obj.ContinueTrack(src,evnt);
             end
+            
+       
         end
         function listenEndOfTrackEvent(obj,src,evnt)
             % obj - instance of this class
@@ -234,13 +242,18 @@ classdef avatar< handle
             %correct position if there is a tracking error and generate
             %a PauseEvent
             IsTrackingError=sqrt((CorrectPosition(1)-CurrentPosition(1))^2+...
-                (CorrectPosition(2)-CurrentPosition(2))^2);
-            if IsTrackingError>=obj.tol
+                (CorrectPosition(2)-CurrentPosition(2))^2)>obj.tol;
+            if IsTrackingError
                 obj.Track.FindCellState='pause';
                 disp('Pausing');
+
+                  CorrectPosition(3)=CurrentPosition(3);                
+                  CorrectPosition(4)=CurrentPosition(4);
                 setPosition(src.CurrentEllipse,CorrectPosition);
                 obj.Track.Track{FrameID}.EllipseHandle=src.CurrentEllipse;
-                src.Track{FrameID}.Position=CorrectPosition;
+                src.Track{FrameID}.Position(3)=CorrectPosition(3);
+                src.Track{FrameID}.Position(4)=CorrectPosition(4);
+%                 src.Track{FrameID}.Position=CorrectPosition;
                 % need to update mask
                 ChangeInPosition=CorrectPosition-CurrentPosition;
                 ChangeInRows=round(ChangeInPosition(2));
@@ -261,54 +274,12 @@ classdef avatar< handle
                 newCellIm(:)=im(src.Track{FrameID}.Mask);
                 newCellIm(b)=NaN;
                 src.Track{FrameID}.CellIm=newCellIm;
-%                 if length(ndx)==find(ndx) % last image of track
-%                     StopTrack(obj,src,evnt);
-%                 else
-%                     obj.ContinueTrack(src,evnt);
-%                 end
-                if find(ndx)==obj.MaxFrames || length(ndx)==find(ndx) % max frames
+                if length(ndx)==find(ndx) % last image of track
                     StopTrack(obj,src,evnt);
                 else
                     obj.ContinueTrack(src,evnt);
                 end
-            elseif IsTrackingError<obj.tol
-                
-                setPosition(src.CurrentEllipse,CorrectPosition);
-                obj.Track.Track{FrameID}.EllipseHandle=src.CurrentEllipse;
-                src.Track{FrameID}.Position=CorrectPosition;
-                % need to update mask
-                ChangeInPosition=CorrectPosition-CurrentPosition;
-                ChangeInRows=round(ChangeInPosition(2));
-                ChangeInCols=round(ChangeInPosition(1));
-                [r,c]=find(src.Track{FrameID}.Mask);
-%                [r,c]=find(src.Track{FrameID}.Result.mask); %use mask from Result instead
-                src.Track{FrameID}.Mask=false(size(src.Track{FrameID}.Mask));
-                src.Track{FrameID}.Mask(r+ChangeInRows,c+ChangeInCols)=true;
-                src.parameters.lastmask=src.Track{FrameID}.Mask;
-                src.Track{FrameID}.Result.mask=src.Track{FrameID}.Mask;
-                src.Track{FrameID}.Mask=src.Track{FrameID}.Mask;
-                % need to update CellIm so that RefImage is modified with
-                % corrected cell image
-                b=false(size(src.Track{FrameID}.CellIm));
-                b(isnan(src.Track{FrameID}.CellIm))=true;
-                im=squeeze(obj.GUIHandle.ImageStack.Stack(:,:,1,FrameID));
-                newCellIm=single(zeros(size(b)));
-                newCellIm(:)=im(src.Track{FrameID}.Mask);
-                newCellIm(b)=NaN;
-                src.Track{FrameID}.CellIm=newCellIm;
-%                 if length(ndx)==find(ndx) % last image of track
-%                     StopTrack(obj,src,evnt);
-%                 else
-%                     obj.ContinueTrack(src,evnt);
-%                 end
-                if find(ndx)==obj.MaxFrames || length(ndx)==find(ndx)% max frames
-                    StopTrack(obj,src,evnt);
-                else
-                    obj.ContinueTrack(src,evnt);
-                end
-%             elseif length(ndx)==find(ndx) % last image of track
-%                 StopTrack(obj,src,evnt);
-            elseif find(ndx)==obj.MaxFrames % last image of track
+            elseif length(ndx)==find(ndx) % last image of track
                 StopTrack(obj,src,evnt);
             end
             

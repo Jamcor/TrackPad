@@ -6,7 +6,7 @@
 
 function [cellimage,relframeid,cmap]=GetCellImagePatches(clone,cloneid,trackid,time,buff,channel,imageobj)
 
-   frameid=find(clone{cloneid}.TimeStamps==time); %absolute frame id - adding plus one for factorial data
+   frameid=find(clone{cloneid}.TimeStamps==time); %absolute frame id 
    relframeid=clone{cloneid}.track{trackid}.T(:)==time; %frame id rel to cell birth
 
 
@@ -44,6 +44,13 @@ else
     rowbuff=ceil(abs(buff-height)/2); colbuff=ceil(abs(buff-width)/2);
     rowstart=min(I)-ceil(0.5*rowbuff); colstart=min(J)-floor(0.5*colbuff);
     width=width+colbuff; height=height+rowbuff;
+    if width~=height
+        if width<height
+            height=width;
+        elseif height<width
+            width=height;
+        end
+    end
     impatchsize=width*height;
 end
 if min(I)<rowbuff

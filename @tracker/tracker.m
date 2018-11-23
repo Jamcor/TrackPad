@@ -130,6 +130,10 @@ classdef tracker < handle
                         getrefimg(obj);  %
                         tic;
                         Result=obj.findCell;
+                        toc;
+%                         tic;
+%                         Result=JamesTemplateMatching(obj);
+%                         toc;
                         Result.ElapsedTime=toc;
                         Result.Time=now;
                         if ~isempty(Result)
@@ -142,9 +146,8 @@ classdef tracker < handle
                                 disp('hereweeeeeeeeeeeeeeeeeee'); %must have been for debugging when i tried to change the template matching process
                             end
                         end
-                        
+                        % %                         delete(obj.CurrentEllipse); 
                         set(obj.CurrentEllipse,'Visible','off'); 
-%                         delete(obj.CurrentEllipse); 
 
                         
                         obj.CurrentEllipse=imellipse(obj.GUIHandle.ImageHandle.Parent,Result.pos);
@@ -267,14 +270,15 @@ function getrefimg(obj)
         % select method to average prior cell images
         switch(obj.parameters.RefImageProtocol)
             case 'Use memory'
-                for i=1:length(range)
-                    try
-                    obj.parameters.refimg=obj.parameters.refimg+obj.parameters.memory(i)*obj.Track{range(i)}.CellIm;
-                    catch
-                        disp('here');
-                    end
-                end
-                obj.parameters.refimg=obj.parameters.refimg/length(range);
+%                 for i=1:length(range)
+%                     try
+%                     obj.parameters.refimg=obj.parameters.refimg+obj.parameters.memory(i)*obj.Track{range(i)}.CellIm;
+%                     catch
+%                         disp('here');
+%                     end
+%                 end
+%                 obj.parameters.refimg=obj.parameters.refimg/length(range);
+obj.parameters.refimg=obj.Track{range(end)}.CellIm;
             case 'Use past rho'
                 %get image weights
                 Rhos=[];

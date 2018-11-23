@@ -76,9 +76,6 @@ function Result=correlation(trackobj,parameters)
         useGPU=false;
     end
 
-    % useGPU=false;
-    % should try and do this on the GPU! need to write sub2ind and ind2sub for
-    % GPU;
     CellTemplate=repmat(CellTemplate,[1,1,l]); %make 'l' copies of the CellTemplate (equal to number of pixels within scanregion)
     if useGPU
         ScanNdx=gpuArray(ScanNdx); %copy array to GPU
@@ -136,42 +133,6 @@ function Result=correlation(trackobj,parameters)
     finalregion=reshape(region_,[NDims,l]);
     data=parameters.im(finalregion);
 
-
-    % 
-    %     
-    %     for i=1:l
-    %     %     %get masked image to correlate with parameters.lastcellimage]
-    %     %     try
-    %     %         ndx=sub2ind([s1 s2],old_r+r(i),old_c+c(i));
-    %     %     catch
-    %     %         error('Lost cell');
-    %     %     end    
-    %     %     lastcellimage=parameters.lastcellimage(:);
-    %         [offset(:,1),offset(:,2)]=ind2sub([s1 s2],ScanNdx(i));
-    %         region=CellTemplate+offset;
-    %         try
-    %             if UsedLayers>1
-    %                 ndx=sub2ind([s1 s2 UsedLayers],region(:,1),region(:,2),region(:,3));
-    %             else
-    %                 ndx=sub2ind([s1 s2],region(:,1),region(:,2));
-    %             end
-    %         catch
-    %             error('Lost cell');
-    %         end
-    %         % only use non zero layers
-    %         if UsedLayers>1
-    %             lastcellimage=parameters.refimg(:,:,1:UsedLayers);
-    %         else
-    %             lastcellimage=parameters.refimg;
-    %         end
-    %         lastcellimage=lastcellimage(:);
-    %         lastcellimage=lastcellimage(~isnan(lastcellimage(:)));
-    %         data(:,i)=parameters.im(ndx);   
-    %     end
-
-    % code can be made parallel using GPU
-
-    % useGPU=false;
     if UsedLayers>1
         lastcellimage=parameters.refimg(:,:,1:UsedLayers);
     else
@@ -219,8 +180,6 @@ function Result=correlation(trackobj,parameters)
     end
    
     %% find best fit, Jane Lu or Li should look here.
-
-
     ScanNdx=squeeze(ScanNdx(1,:,:));
     ScanNdx=ScanNdx';
     if UsedLayers>1
@@ -416,60 +375,3 @@ function index =GPUsub2ind(dims,varargin)
 
 end
 
-
-
-
-
-% function Result=PCA(trackobj,parameters)
-% % parameters.lastmask is a mask for the prior cell image
-% % parameters.lastcellimage is the last cell image
-% % parameters.PCA is PCA of the learning set
-% % parameters.maxradius is the maximum displacement distance (in pixels)
-%     ScanNdx=getScanRegion(parameters);
-%     [Cellrows,Cellcols]=find(~isnan(parameters.PCA.MeanImg));
-%     Cellrows=round(Cellrows-(max(Cellrows)-min(Cellrows))/2);
-%     Cellcols=round(Cellcols-(max(Cellcols)-min(Cellcols))/2);
-%     % offset cell template so that it is in the center with positive and
-%     % negative values
-%     CellTemplate=[Cellrows Cellcols];
-% 
-%     %% for each displacement calculate the Mahalanobis distance
-%     % only use foreground information
-%     l=length(ScanNdx);
-%     Dm=zeros(l,1);
-%     pval=zeros(l,1);
-%     [s1 s2]=size(parameters.lastmask);
-%     NDims=size(parameters.PCA.Vectors,2);
-%     offset=zeros(NDims,2);
-%     for i=1:l
-%         %get masked image to multiply by parameters.PCA.W
-%         [offset(:,1),offset(:,2)]=ind2sub([s1 s2],ScanNdx(i));
-%         region=CellTemplate+offset;
-%         try
-%             ndx=sub2ind([s1 s2],region(:,1),region(:,2));
-%         catch
-%             error('Lost cell');
-%         end
-%     %     lastcellimage=parameters.lastcellimage(:);
-%     % normalise with respect to the mean cell image
-%         Normalised=parameters.im(ndx)-parameters.PCA.MeanImg(~isnan(parameters.PCA.MeanImg));
-%         Scores=parameters.PCA.W*Normalised;
-%         S=parameters.PCA.Cov;
-%         Dm2(i)=diag(Scores'*(S^-1)*Scores); % see http://www.aiaccess.net/English/Glossaries/GlosMod/e_gm_mahalanobis.htm
-%         dof=size(parameters.PCA.Cov,1);
-%         pval(i)=1-cdf('chi2',Dm2(i),dof);
-%     end
-%     %% find best fit
-% 
-%     b=unique(min(Dm2))==Dm2;% binary index to best position
-%     [offset(:,1),offset(:,2)]=ind2sub(size(parameters.lastmask),ScanNdx(b));
-%     newrefs=CellTemplate+offset;
-%     ndx=sub2ind([s1 s2],newrefs(:,1),newrefs(:,2));
-%     Result.mask=false([s1 s2]);
-%     Result.mask(ndx)=true;
-%     Result.Dm2=Dm2(b);
-%     Result.pval=pval(b);
-%     Result.pos=[min(newrefs(:,2)),min(newrefs(:,1)),...
-%         max(newrefs(:,2))-min(newrefs(:,2)),...
-%         max(newrefs(:,1))-min(newrefs(:,1))];
-% end

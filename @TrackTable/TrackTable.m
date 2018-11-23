@@ -10,6 +10,7 @@ classdef TrackTable < handle
         DisplayTableData
         Tracks=[]
         CntrlObj
+        CellImagePatchBuffer
         
     end
     
@@ -41,9 +42,11 @@ classdef TrackTable < handle
             uimenu(ExportMenuHandle,'Label','Pedigree data',...
                 'Callback',{@obj.getPedigreeData,obj});
             uimenu(ExportMenuHandle,'Label','Annotations',...
-                'Callback',{@obj.getAnnotations,obj});            
+                'Callback',{@obj.getAnnotations,obj});
             uimenu(ExportMenuHandle,'Label','Cell image patches',...
                 'Callback',{@obj.getCellImages,obj});
+            uimenu(ExportMenuHandle,'Label','Clone file',...
+                'Callback',{@obj.getCloneFile,obj});
             
             %a new toolbar
             obj.ToolBarHandle=findall(gcf,'tag','FigureToolBar');
@@ -117,6 +120,23 @@ classdef TrackTable < handle
         
         function getPedigreeData(hObject,EventData,hTrackTable)
             
+            %get annotations and their transitions
+            annotationmatrix=hTrackTable.getAnnotations(hTrackTable); %get annotation matrix
+            
+            [annotations,transitions]=hTrackTable.getTransitions(hTrackTable,annotationmatrix); %get unique annotations and their transitions
+            
+            writetable(struct2table(transitions),'transitions.txt'); %write to txt file
+            transitions=readtable('transitions.txt');
+            header=cellfun(@(x) strrep(x,'transition_index','unique_annotations'),transitions.Properties.VariableNames(1:end/2),'UniformOutput',0);
+            
+            writetable(struct2table(annotations),'annotations.txt','WriteVariableNames',0);
+            
+            fid=fopen('annotations.txt','r');
+            annotations=textscan(fid,repmat('%s',[1 length(header)]),'CollectOutput',true,'Delimiter',',');
+            annotations=cell2table(annotations{:});
+            annotations.Properties.VariableNames=header(:);
+            
+            
             %get fate outcomes as numeric code
             for i=1:length(hTrackTable.TableData.Fate)
                 switch hTrackTable.TableData.Fate{i}
@@ -143,13 +163,25 @@ classdef TrackTable < handle
             fnames=fieldnames(hTrackTable.TableData);
             fnames=fnames(7:end-1);
             annotationtable=hTrackTable.DisplayTableData(:,7:end);
+            
+            %get average distance measurements
+            allclones={hTrackTable.PedigreeData};
+            distancedata=getTrajectories(allclones);
+            meandistances=[];
+            for i=1:size(distancedata.clone,2)
+                meandistances=[meandistances;[distancedata.clone(i).cell.mean]'];
+            end
+            
+            %prompt user to input condition name
+            condition=inputdlg('Enter condition name: ', 'Input pedigree name or treatment condition',1,{'Experiment XX'});
+            
             %assemble all pedigree data
             pedigreedata=[[hTrackTable.TableData.Track_ID{:}]',[hTrackTable.TableData.Parent_ID{:}]',...
                 [hTrackTable.TableData.Ancestor_ID{:}]',[hTrackTable.TableData.Progeny_ID{:}]',...
                 [hTrackTable.TableData.Generation_ID{:}]',hTrackTable.TableData.FateNumber,...
-                birthtimes,deathtimes,lifetimes];
-            heading={'TrackID' 'ParentID' 'AncestorID' 'ProgenyID' 'Generation' 'Fate' ...
-                'BirthTime' 'StopTime' 'Lifetime',fnames{:}};
+                birthtimes,deathtimes,lifetimes,meandistances];
+            heading={'Condition','TrackID' 'ParentID' 'AncestorID' 'ProgenyID' 'Generation' 'Fate' ...
+                'BirthTime' 'StopTime' 'Lifetime','MeanDistance',fnames{:}};
             
             [filename,~]=uiputfile('*.txt','Save pedigree data as');
             fid = fopen(filename, 'wt');
@@ -159,89 +191,151 @@ classdef TrackTable < handle
             for i=1:length(pedigreedata)
                 numericalrowdata=pedigreedata(i,:);
                 stringrowdata=annotationtable(i,:);
+                fprintf(fid,'%s,',condition{:});
                 fprintf(fid,'%f,',numericalrowdata(1:end));
                 fprintf(fid,'%s,',stringrowdata{1:end-1});
                 fprintf(fid,'%s\n',stringrowdata{end});
                 %               fprintf(fid,'%f\n',rowdata(end));
             end
             fclose(fid);
-                        
+            
+            %write annotation table
+            writetable([annotations transitions],strrep(filename,'.txt','_annotations.txt'),'WriteVariableNames',1);
             
         end
         
-        
-        function getTrajectories(hObject,EventData,hTrackTable)
-            allclones={hTrackTable.PedigreeData};
-            distancedata=getTrajectories(allclones);
+        function [annotations,transitions]=getTransitions(hTrackTable,annotationmatrix)
             
-            timestamps=distancedata.TimeStamps;
             
-            distancetable=zeros(length(timestamps),1);
-            condition='condition';
-            for i=1:length(hTrackTable.TableData.Track_ID)
-                %                 disp([num2str(i)]);
+            for i=1:length(annotationmatrix)
+                feature=annotationmatrix(i);
+                timestamps=feature.timestamps;
+                feature=rmfield(feature,'timestamps');
                 
-                T=timestamps(hTrackTable.CntrlObj.Tracks.tbl.Image_Number{i});
-                T=(T-T(1))';
-                X=hTrackTable.CntrlObj.Tracks.tbl.Position{i}(:,1);
-                Y=hTrackTable.CntrlObj.Tracks.tbl.Position{i}(:,2);
+                [transitionndx,unique_annotations]=structfun(@getTransitionTimes ,feature,'UniformOutput',0);
+                
+                transitiontimes=structfun(@(x) timestamps(x),transitionndx,'UniformOutput',0);
+                
+                unique_annotations=struct2table(unique_annotations);
+                transitiontimes=struct2table(transitiontimes);
+                transitionndx=struct2table(transitionndx);
+                
+                transitiontimes.Properties.VariableNames=cellfun(@(x) strcat(x,'_transition_time'),...
+                    transitiontimes.Properties.VariableNames,'UniformOutput',0);
+                
+                transitionndx.Properties.VariableNames=cellfun(@(x) strcat(x,'_transition_index'),...
+                    transitionndx.Properties.VariableNames,'UniformOutput',0);
+                
+                unique_annotations.Properties.VariableNames=cellfun(@(x) strcat(x,'_unique_annotations'),...
+                    unique_annotations.Properties.VariableNames,'UniformOutput',0);
+                
+                transitiontable=[transitionndx transitiontimes];
                 
                 if i==1
-                    distancetable(1:length(T),1)=X;
-                    distancetable(1:length(T),end+1)=Y;
-                    distancetable(1:length(T),end+1)=T;
-                else
-                    distancetable(1:length(T),end+1)=X;
-                    distancetable(1:length(T),end+1)=Y;
-                    distancetable(1:length(T),end+1)=T;
+                    transitions=table2struct(transitiontable);
+                    annotations=table2struct(unique_annotations);
+                elseif i>1
+                    transitions(i)=table2struct(transitiontable);
+                    annotations(i)=table2struct(unique_annotations);
                 end
+                
             end
-            [filename,~]=uiputfile('*.txt','Save cell trajectories as');
-            fid = fopen(filename, 'wt');
-            heading=repmat(1:i,3,1);
-            heading=reshape(heading,[1 i*3]);
-            heading=arrayfun(@(x) {num2str(x)},heading);
-            heading=strcat({'Track'},heading);
-            heading=strcat(heading,repmat({'_X' '_Y' '_T'},1,i));
-            fprintf(fid,'%s,',heading{1:end-1});
-            fprintf(fid,'%s\n',heading{end});
             
-            for i=1:size(distancetable,1)
-                rowdata=distancetable(i,:);
-                fprintf(fid,'%f,',rowdata(1:end-1));
-                fprintf(fid,'%f\n',rowdata(end));
+            function [transitionndx,unique_annotations]=getTransitionTimes(AnnotationSubset)
+                unique_annotations=unique(AnnotationSubset);
+                
+                if length(unique_annotations)>1
+                    forwardtransition=strcmp(AnnotationSubset,AnnotationSubset{1});
+                    transitionndx=[1 find(diff(forwardtransition))+1];
+                    unique_annotations=AnnotationSubset(transitionndx);
+                elseif length(unique_annotations)==1
+                    transitionndx=1;
+                end
+                return
             end
-            fclose(fid);
+            
+            return
         end
         
-        function getAnnotations(hObject,EventData,hTrackTable)
-            [filename,pathname]=uiputfile('*.txt','Save annotation data as');
-
+        
+        %         function getTrajectories(hObject,EventData,hTrackTable)
+        %             allclones={hTrackTable.PedigreeData};
+        %             distancedata=getTrajectories(allclones);
+        %
+        %             timestamps=distancedata.TimeStamps;
+        %
+        %
+        %
+        %             distancetable=zeros(length(timestamps),1);
+        %             condition='condition';
+        %             for i=1:length(hTrackTable.TableData.Track_ID)
+        %                 %                 disp([num2str(i)]);
+        %
+        %                 T=timestamps(hTrackTable.CntrlObj.Tracks.tbl.Image_Number{i});
+        %                 T=(T-T(1))';
+        %                 X=hTrackTable.CntrlObj.Tracks.tbl.Position{i}(:,1);
+        %                 Y=hTrackTable.CntrlObj.Tracks.tbl.Position{i}(:,2);
+        %
+        %                 if i==1
+        %                     distancetable(1:length(T),1)=X;
+        %                     distancetable(1:length(T),end+1)=Y;
+        %                     distancetable(1:length(T),end+1)=T;
+        %                 else
+        %                     distancetable(1:length(T),end+1)=X;
+        %                     distancetable(1:length(T),end+1)=Y;
+        %                     distancetable(1:length(T),end+1)=T;
+        %                 end
+        %             end
+        %             [filename,~]=uiputfile('*.txt','Save cell trajectories as');
+        %             fid = fopen(filename, 'wt');
+        %             heading=repmat(1:i,3,1);
+        %             heading=reshape(heading,[1 i*3]);
+        %             heading=arrayfun(@(x) {num2str(x)},heading);
+        %             heading=strcat({'Track'},heading);
+        %             heading=strcat(heading,repmat({'_X' '_Y' '_T'},1,i));
+        %             fprintf(fid,'%s,',heading{1:end-1});
+        %             fprintf(fid,'%s\n',heading{end});
+        %
+        %             for i=1:size(distancetable,1)
+        %                 rowdata=distancetable(i,:);
+        %                 fprintf(fid,'%f,',rowdata(1:end-1));
+        %                 fprintf(fid,'%f\n',rowdata(end));
+        %             end
+        %             fclose(fid);
+        %         end
+        
+        function track=getAnnotations(varargin)
+            if length(varargin)==3
+                hTrackTable=varargin{3};
+                [filename,pathname]=uiputfile('*.txt','Save annotation data as');
+            elseif length(varargin)==1
+                hTrackTable=varargin{:};
+            end
             annotations=fieldnames(hTrackTable.CntrlObj.CellProperties(3).String);
             ndx=cellfun(@(x) ~strcmp(x,'PedigreeID'),annotations);
             annotations=annotations(ndx); %remove PedigreeID
             numb_tracks=length(hTrackTable.CntrlObj.Tracks.Tracks);
             track=struct();
             for i=1:numb_tracks
-            
-            firstframe=hTrackTable.CntrlObj.Tracks.Tracks(i).Track.trackrange(1);
-            lastframe=hTrackTable.CntrlObj.Tracks.Tracks(i).Track.trackrange(2);
-            times=hTrackTable.CntrlObj.ImageStack.AcquisitionTimes(firstframe:lastframe)-hTrackTable.CntrlObj.ImageStack.AcquisitionTimes(firstframe);
-            track(i).timestamps=times(2:end-1); %dont' include first and last time point (no annotations for these timepoints)
-            for j=1:length(annotations)
                 
-                if i==1
-                setfield(track(i),annotations{j},[]);
+                firstframe=hTrackTable.CntrlObj.Tracks.Tracks(i).Track.trackrange(1);
+                lastframe=hTrackTable.CntrlObj.Tracks.Tracks(i).Track.trackrange(2);
+                times=hTrackTable.CntrlObj.ImageStack.AcquisitionTimes(firstframe:lastframe)-hTrackTable.CntrlObj.ImageStack.AcquisitionTimes(firstframe);
+                track(i).timestamps=times(2:end-1); %dont' include first and last time point (no annotations for these timepoints)
+                for j=1:length(annotations)
+                    
+                    if i==1
+                        setfield(track(i),annotations{j},[]);
+                    end
+                    track(i).(annotations{j})=cell(1,range(firstframe:lastframe)-1);
+                    count=1;
+                    
+                    for k=(firstframe+1):(lastframe-1)
+                        track(i).(annotations{j}){count}=hTrackTable.CntrlObj.Tracks.Tracks(i).Track.Track{k}.Annotation.Symbol.(annotations{j});
+                        count=count+1;
+                    end
                 end
-                track(i).(annotations{j})=cell(1,range(firstframe:lastframe)-1);
-                count=1;
                 
-                for k=(firstframe+1):(lastframe-1)
-                track(i).(annotations{j}){count}=hTrackTable.CntrlObj.Tracks.Tracks(i).Track.Track{k}.Annotation.Symbol.(annotations{j});
-                count=count+1;
-                end
-            end
-            
             end
             numb_annotations=length(hTrackTable.CntrlObj.ImageStack.AcquisitionTimes-2);
             for i=1:length(hTrackTable.TableData.Track_ID)
@@ -253,17 +347,25 @@ classdef TrackTable < handle
                 AnnotationTable.Time=T;
                 for j=1:length(annotations)
                     feature=track(i).(annotations{j})';
+                    [uniquefeatures,transitionndx,~]=unique(feature);
+                    if length(uniquefeatures)>1
+                        transitiontime=AnnotationTable.Time(transitionndx(2));
+                    end
                     feature(end+1:numb_annotations)={NaN};
                     AnnotationTable.(annotations{j})=feature;
                 end
                 AnnotationTable.Properties.VariableNames=strcat(['Track_' num2str(i) '_'], ['Time' annotations']);
                 if i==1
-                   FinalTable=AnnotationTable; 
+                    FinalTable=AnnotationTable;
                 elseif i>1
                     FinalTable=[FinalTable AnnotationTable];
                 end
             end
-            writetable(FinalTable,[pathname filename]); 
+            if length(varargin)==3
+                writetable(FinalTable,[pathname filename]);
+            elseif length(varargin)==1
+                return
+            end
         end
         
         
@@ -275,17 +377,31 @@ classdef TrackTable < handle
             timestamps=hTrackTable.CntrlObj.ImageStack.AcquisitionTimes;
             maxtracks=max([hTrackTable.TableData.Progeny_ID{:}]);
             
-            pathname=uigetdir('Select directory to save images');
+            pathname=uigetdir(hTrackTable.CntrlObj.TrackPath,'Select directory to save images');
+            if ~isdir([pathname '\SegmentedCells'])
+                mkdir([pathname '\SegmentedCells']);
+                pathname=[pathname '\SegmentedCells\'];
+            else isdir([pathname '\SegmentedCells'])
+                pathname=[pathname '\SegmentedCells\'];
+            end
             
-            buffer=250;
+            answer=inputdlg('Enter buffer size (in pixels)','Create Image Patches',1,{'250'});
+            hTrackTable.CellImagePatchBuffer=str2num(answer{:});
+            %             buffer=250;
             channels={'Phase'};
             
             imagestack=hTrackTable.CntrlObj.ImageStack;
-            GetCellImages(allclones,1:maxclones,1:maxtracks,buffer,pathname,channels,imagestack)
+            GetCellImages(allclones,1:maxclones,1:maxtracks,hTrackTable.CellImagePatchBuffer,pathname,channels,imagestack)
             
         end
-                
-
+        
+        %exports tracks in clone file format - can be used with SegmentCell
+        function getCloneFile(hObject,EventData,hTrackTable)
+            savepath=uigetdir([hTrackTable.CntrlObj.TrackPath],'Select location to save clone file');
+            clone=hTrackTable.PedigreeData;
+            TrackFileName=strsplit(hTrackTable.CntrlObj.TrackFile ,'.');
+            save([savepath '\' TrackFileName{1} ' clonefile.mat'],'clone');
+        end
         
     end
     

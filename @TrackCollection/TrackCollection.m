@@ -259,6 +259,7 @@ classdef TrackCollection < handle
             fnames=fieldnames(obj.CntrlObj.CellProperties(3).Type);
             obj.CntrlObj.AnnotationDisplay='None'; %turn off annotations for loading tracks
             for i=1:height(obj.tbl)
+                disp(['Processing track ' num2str(i)]);
                 % create track
                 waitbar(i/height(obj.tbl),h);
                 axes(obj.CntrlObj.ImageHandle.Parent); % make sure you reset current axes to image after waitbar

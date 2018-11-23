@@ -8,14 +8,14 @@ rho=ROCtbl.Rho;
 
 Y=[TP FN FP TN];
 
-% figure();
-% area(rho,Y,'LineStyle',':');
-% xlabel('Correlation threshold (rho)');
-% ylabel('Frequency (%)');
-% % h(1).FaceColor = [0 0.25 0.25];
-% % h(2).FaceColor = [0 0.5 0.5];
-% % h(3).FaceColor = [0 0.75 0.75];
-% legend('TP', 'FN', 'FP', 'TN');
+figure();
+area(rho,Y,'LineStyle',':');
+xlabel('Correlation threshold (rho)');
+ylabel('Frequency (%)');
+% h(1).FaceColor = [0 0.25 0.25];
+% h(2).FaceColor = [0 0.5 0.5];
+% h(3).FaceColor = [0 0.75 0.75];
+legend('TP', 'FN', 'FP', 'TN');
 
 %estimate cost based on time correcting FN (lost) and FP (pause) from
 %truthtable
@@ -40,16 +40,16 @@ min_rho=rho(ndx);
 
 
 
-% figure();
-% plot(rho,costmatrix);
-% xlabel('Correlation threshold (rho)');
-% ylabel('Cost');
-% legend('Cost function');
-% hold on;
-% plot(min_rho,mincost,'*g');
-% text(min_rho,(mincost-mincost*0.10),['Rho= ' num2str(min_rho)]);
-% hold off;
-% disp(['Min rho: ' num2str(min_rho)]);
+figure();
+plot(rho,costmatrix);
+xlabel('Correlation threshold (rho)');
+ylabel('Cost');
+legend('Cost function');
+hold on;
+plot(min_rho,mincost,'*g');
+text(min_rho,(mincost-mincost*0.10),['Rho= ' num2str(min_rho)]);
+hold off;
+disp(['Min rho: ' num2str(min_rho)]);
 sr=0;
 return
 end

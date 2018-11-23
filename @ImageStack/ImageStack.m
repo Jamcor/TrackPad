@@ -161,10 +161,13 @@ classdef (ConstructOnLoad=true) ImageStack < handle
                 IntType='uint8';
             elseif s.BitDepth==16
                 IntType='uint16';
+            elseif s.BitDepth==24
+                IntType='uint24';
             else
                 error(['BitDepth is ' num2str(s.BitDepth) '?']);
             end
             n=length(FileName);
+            obj.ImageStackObj.Stack=zeros(s.Height,s.Width,1,n,IntType);
             obj.ch1.stack=zeros(s.Height,s.Width,1,n,IntType);
             obj.CData=zeros(s.Height,s.Width,n,'uint8');
             obj.CMap=cell(n,1);
@@ -178,12 +181,14 @@ classdef (ConstructOnLoad=true) ImageStack < handle
             h=waitbar(0,'Reading Ch1 images');
             for i=1:n
                 obj.ch1.imfinfo(i)=imfinfo([PathName  FileName{i}]);
-                obj.ch1.stack(:,:,1,i)=imread([PathName  FileName{i}]);
+                obj.ImageStackObj.Stack(:,:,1,i)=imread([PathName  FileName{i}]);
+%                 obj.ch1.stack(:,:,1,i)=imread([PathName  FileName{i}]);
                 waitbar(i/n,h);
             end
             close(h);
             obj.ch1.pathedit.String=PathName;
             obj.ch1.filesList.String=FileName;
+            obj.ch1.stackhandle=obj.ImageStackObj;
             guidata(obj.fhandle,obj);
             ImageStack.JSliderCallback(obj.fhandle,[]);
             % update obj
@@ -193,7 +198,7 @@ classdef (ConstructOnLoad=true) ImageStack < handle
             % load ImageStack with data
             obj.ImageStackObj.PathName=PathName;
             obj.ImageStackObj.FileName=FileName;
-            obj.ImageStackObj.Stack(:,:,1,:)=obj.ch1.stack; %could we change this to include all channels in the stack using rgb instead?
+%             obj.ImageStackObj.Stack(:,:,1,:)=obj.ch1.stack; %could we change this to include all channels in the stack using rgb instead?
             obj.ImageStackObj.NumberOfImages=size(obj.ch1.stack,4);
             obj.ImageStackObj.AcquisitionTimes=cellfun(@(x) datenum(x),{obj.ch1.imfinfo(:).ImageDescription});
             obj.ch1.UniformIlluminationButton.Enable='on';

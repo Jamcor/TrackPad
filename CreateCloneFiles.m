@@ -8,7 +8,7 @@ for i=1:length(ancestor_IDs)
    disp(['Ancestor is ' num2str(ancestor_IDs(i))]);
    complete_clone{i}.TimeStamps=TimeStamps;
    familyndx=([tracks.Ancestor_ID{:}]==ancestor_IDs(i)); 
-   trackids=tracks.Track_ID{familyndx};
+   trackids=[tracks.Track_ID{familyndx}];
    
    for j=1:length(trackids)
    disp(['Progeny is ' num2str(trackids(j))]);
@@ -50,15 +50,15 @@ stopreason=[tracks.Fate{trackids(j)}];
    
 end
 
-if length(varargin)==2
-    condition=varargin{1};
-    savepath=varargin{2};
-if ~isdir([savepath condition])
-   mkdir([savepath condition]);
-end
-save([savepath condition '\' condition ' clonefile.mat'],'complete_clone');
+% if length(varargin)==2
+%     condition=varargin{1};
+%     savepath=varargin{2};
+% if ~isdir([savepath condition])
+%    mkdir([savepath condition]);
+% end
+% save([savepath condition '\' condition ' clonefile.mat'],'complete_clone');
 % else   
 %     save([condition ' clonefile.mat'],'complete_clone');
-end
+% end
 return
 end
