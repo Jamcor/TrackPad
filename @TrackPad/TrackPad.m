@@ -305,16 +305,16 @@ classdef TrackPad < handle
             
             %optional cell properties (subsets)
             obj.CellProperties(3).Name='Subsets';
-            obj.CellProperties(3).Type.Ch1Fluorescence={'No annotation','low','mid','high'};
+            obj.CellProperties(3).Type.Ch1Fluorescence={'No annotation','Low','Mid','High'};
             obj.CellProperties(3).Symbol.Ch1Fluorescence={'NA','Ch1 low','Ch1 mid' 'Ch1 high'};
-            obj.CellProperties(3).String.Ch1Fluorescence={'No annotation (NA)','Low','Mid', 'High'};
+            obj.CellProperties(3).String.Ch1Fluorescence={'No annotation (NA)','Low (Ch1 low)','Mid (Ch1 mid)', 'High (Ch1 high)'};
             obj.CellProperties(3).Type.Differentiation={'No annotation'};
             obj.CellProperties(3).Symbol.Differentiation={'NA'};
             obj.CellProperties(3).String.Differentiation={'No annotation (NA)'};
             obj.CellProperties(3).Type.Morphology={'No annotation'};
             obj.CellProperties(3).Symbol.Morphology={'NA'};
             obj.CellProperties(3).String.Morphology={'No annotation (NA)'};
-            obj.CellProperties(3).Type.Binucleation={'No annotation','binucleated'};
+            obj.CellProperties(3).Type.Binucleation={'No annotation','Binucleated'};
             obj.CellProperties(3).Symbol.Binucleation={'NA','BI'};
             obj.CellProperties(3).String.Binucleation={'No annotation (NA)','Binucleated (BI)'};
             obj.CellProperties(3).Type.PedigreeID={'No annotation'};
@@ -1016,149 +1016,6 @@ classdef TrackPad < handle
             
         end
         
-%         function AnnotateTrack(hObject,EventData,hTrackPad)
-%             hTrackPad.ImageContextMenu.AnnotateTrack.Visible='off';
-%             hTrackPad.ImageContextMenu.DeleteTrack.Visible='off';
-%             hTrackPad.ImageContextMenu.StopTrack.Visible='off';
-%             hTrackPad.ImageContextMenu.EditTrack.Visible='off';
-%             hTrackPad.ImageContextMenu.StopEditTrack.Visible='off';
-%             hTrackPad.ImageContextMenu.Reposition.Visible='off';
-%             hTrackPad.ImageContextMenu.Cancel.Visible='off';
-%             hTrackPad.ImageContextMenu.ReturnToStart.Visible='off';
-%             hTrackPad.ImageContextMenu.GoToEnd.Visible='off';
-% %             hfig=figure('Name','Annotate track','ToolBar','none',...
-% %                 'MenuBar','none','NumberTitle','off','WindowStyle','modal');
-%                         hfig=figure('Name','Annotate track','ToolBar','none',...
-%                             'MenuBar','none','NumberTitle','off'); %without modal set
-%             handles=guihandles(hfig);
-%             set(hfig,'CloseRequestFcn',{@hTrackPad.CloseAnnotationFigure,hTrackPad});
-%             hTrackPad.AnnotationFigureHandle=hfig;
-%             CellProperties=hTrackPad.CellProperties;
-%             % calculate height of figure
-%             h=0;
-%             for i=1:2
-%                 h=h+45*length(CellProperties(i).Type);
-%             end
-%             
-%             fnames=fieldnames(CellProperties(3).Type);
-%             
-%             for i=1:length(fnames)-1 %don't include pedigreeID in annotation table, i.e. exclude last subset
-%                 h=h+45*length(CellProperties(3).Type.(fnames{i}));
-%             end
-%             
-%             hfig.Position(2)=100;
-%             hfig.Position(3)=300;
-%             hfig.Position(4)=round(h);
-% %             hfig.Resize='Off';
-%             
-%             h=hfig.Position(4);
-%             % first write button groups
-%             CurrentTrackID=hTrackPad.Tracks.CurrentTrackID;
-%             CurrentNdx=hTrackPad.ImageStack.CurrentNdx;
-%             trackrange(1)=find(cellfun(@(x) ~isempty(x),...
-%                 hTrackPad.Tracks.Tracks(CurrentTrackID).Track.Track),1,'first');
-%             trackrange(2)=find(cellfun(@(x) ~isempty(x),...
-%                 hTrackPad.Tracks.Tracks(CurrentTrackID).Track.Track),1,'last');
-%             
-%             for i=1:length(CellProperties)-1
-%                 str=[CellProperties(i).Name];
-%                 BGHeight=(length(CellProperties(i).Type)+1)*25;
-%                 h=h-BGHeight-10;
-%                 handles.(str).BG=uibuttongroup(hfig,'Visible','on','Units','pixels');
-%                 handles.(str).BG.Position=[25,h,150,BGHeight];
-%                 set(handles.(str).BG,'SelectionChangedFcn',{@hTrackPad.AnnotationHandler,hTrackPad});
-%                 
-%                 handles.(str).BG.Title=CellProperties(i).Name;
-%                 n=length(CellProperties(i).Type);
-%                 % create radio buttons
-%                 
-%                 for j=1:n
-%                     handles.(str).RB(j)=uicontrol(handles.(str).BG,'Style',...
-%                         'radiobutton',...
-%                         'String',CellProperties(i).String{j},...
-%                         'position',[4,BGHeight-j*20-20,160,15],...
-%                         'HandleVisibility','off');
-%                     
-%                 end
-%                 
-%             end
-%             
-%             %add buttons for annotation subsets
-%             subsets=CellProperties(3);
-%             str='Subsets';
-%             fnames=fieldnames(subsets.Type);
-%             numb_subsets=length(fnames)-1; %don't add pedigreeID to annotation table, i.e. exclude last subset
-%             
-%             for i=1:numb_subsets
-%                 BGHeight=(length(subsets.Type.(fnames{i}))+1)*25;
-%                 h=h-BGHeight-10;
-%                 handles.(str).(fnames{i}).BG=uibuttongroup(hfig,'Visible','on','Units','pixels');
-%                 handles.(str).(fnames{i}).BG.Position=[25,h,150,BGHeight];
-%                 set(handles.(str).(fnames{i}).BG,'SelectionChangedFcn',{@hTrackPad.AnnotationHandler,hTrackPad});
-%                 
-%                 handles.(str).(fnames{i}).BG.Title=fnames{i};
-%                 n=length(subsets.Type.(fnames{i}));
-%                 % create radio buttons
-%                 
-%                 for j=1:n
-%                     handles.(str).(fnames{i}).RB(j)=uicontrol(handles.(str).(fnames{i}).BG,'Style',...
-%                         'radiobutton',...
-%                         'String',subsets.String.(fnames{i}){j},...
-%                         'position',[4,BGHeight-j*20-20,160,15],...
-%                         'HandleVisibility','off');
-%                 end
-%                 
-%             end
-%             
-%             % update state of annotation tool to reflect current track
-%             % annotation state
-%             for i=1:length(CellProperties)
-%                 str=[CellProperties(i).Name];
-%                 n=length(CellProperties(i).Type);
-%                 if i==1 % Origin
-%                     s=[hTrackPad.Tracks.Tracks(CurrentTrackID).Track.Track{trackrange(1)}.Annotation.Type,...
-%                         ' (',hTrackPad.Tracks.Tracks(CurrentTrackID).Track.Track{trackrange(1)}.Annotation.Symbol,...
-%                         ')'];
-%                     for j=1:n
-%                         if strcmp(handles.(str).RB(j).String,s)
-%                             handles.(str).RB(j).Value=1;
-%                         end
-%                     end
-%                 elseif i==2 % Fate
-%                     s=[hTrackPad.Tracks.Tracks(CurrentTrackID).Track.Track{trackrange(2)}.Annotation.Type,...
-%                         ' (',hTrackPad.Tracks.Tracks(CurrentTrackID).Track.Track{trackrange(2)}.Annotation.Symbol,...
-%                         ')'];
-%                     for j=1:n
-%                         if strcmp(handles.(str).RB(j).String,s)
-%                             handles.(str).RB(j).Value=1;
-%                         end
-%                     end
-%                 else % subset
-%                     if CurrentNdx<=trackrange(1)
-%                         CurrentNdx=trackrange(1)+1;
-%                     elseif CurrentNdx>=trackrange(2)
-%                         CurrentNdx=trackrange(2)-1;
-%                     end
-%                     if (CurrentNdx<trackrange(2)&&CurrentNdx>trackrange(1))
-%                         for ii=1:numb_subsets
-%                             if ~isempty(hTrackPad.Tracks.Tracks(CurrentTrackID).Track.Track{CurrentNdx}.Annotation)
-%                                 n=length(CellProperties(i).Type.(fnames{ii}));
-%                                 s=[hTrackPad.Tracks.Tracks(CurrentTrackID).Track.Track{CurrentNdx}.Annotation.Type.(fnames{ii}),...
-%                                     ' (',hTrackPad.Tracks.Tracks(CurrentTrackID).Track.Track{CurrentNdx}.Annotation.Symbol.(fnames{ii}),...
-%                                     ')'];
-%                                 for j=1:n
-%                                     if strcmp(handles.(str).(fnames{ii}).RB(j).String,s)
-%                                         handles.(str).(fnames{ii}).RB(j).Value=1;
-%                                     end
-%                                 end
-%                             end
-%                         end
-%                         
-%                     end
-%                 end
-%             end
-%             guidata(hfig,handles);
-%         end
 
 function AnnotateTrack(hObject,EventData,hTrackPad)
             hTrackPad.ImageContextMenu.AnnotateTrack.Visible='off';
@@ -1236,10 +1093,9 @@ function AnnotateTrack(hObject,EventData,hTrackPad)
             
             
             Data = {'','','',''};
-            t = uitable('Parent', hfig,'ColumnFormat',...
-                ({subsets.String.(fnames{1})' subsets.String.(fnames{2})' subsets.String.(fnames{3})' subsets.String.(fnames{4})'}),... 
-            'ColumnEditable', true,'Data', Data,'ColumnName',{fnames{1:end-1}},'RowName',[],...
+            t = uitable('Parent', hfig,'ColumnEditable', true,'Data', Data,'ColumnName',{fnames{1:end-1}},'RowName',[],...
             'CellEditCallback',{@hTrackPad.AnnotationHandler,hTrackPad},'units','normalized');
+            t.ColumnFormat=({subsets.String.(fnames{1}) subsets.String.(fnames{2}) subsets.String.(fnames{3}) subsets.String.(fnames{4})});
             t.Position=[0.1 0.35 t.Extent(3) t.Extent(4)];
         
             
@@ -1276,7 +1132,8 @@ function AnnotateTrack(hObject,EventData,hTrackPad)
                         for ii=1:numb_subsets
                             if ~isempty(hTrackPad.Tracks.Tracks(CurrentTrackID).Track.Track{CurrentNdx}.Annotation)
                                 n=length(CellProperties(i).Type.(fnames{ii}));
-                                s=[hTrackPad.Tracks.Tracks(CurrentTrackID).Track.Track{CurrentNdx}.Annotation.Type.(fnames{ii}) ' (' hTrackPad.Tracks.Tracks(CurrentTrackID).Track.Track{CurrentNdx}.Annotation.Symbol.(fnames{ii}) ')'];
+                                s=[hTrackPad.Tracks.Tracks(CurrentTrackID).Track.Track{CurrentNdx}.Annotation.Type.(fnames{ii})...
+                                    ' (' hTrackPad.Tracks.Tracks(CurrentTrackID).Track.Track{CurrentNdx}.Annotation.Symbol.(fnames{ii}) ')'];
                                 if sum(strcmp(t.ColumnFormat{ii},s))==1
                                         t.Data{ii}=s;
                                 end
@@ -1970,9 +1827,10 @@ function AnnotateTrack(hObject,EventData,hTrackPad)
                 data{i+k,3}=[];
             end
             columnformat=({annotationsubsets' [] []});
-            t=uitable(fh,'Data',data,'ColumnWidth',{180 120 50},'ColumnFormat',columnformat,'ColumnEditable',true);
-            t.Position=[20,20,400,390];
-            get(t,'Position');
+            t=uitable(fh,'Data',data,'ColumnWidth',{180 120 50},'ColumnFormat',columnformat,...
+                'ColumnEditable',true,'Units','normalized','RowName',[]);
+            t.Position=[(1-t.Extent(3))/2,(1-t.Extent(4))/2,t.Extent(3),t.Extent(3)];
+            t.ColumnName={'Annotation subset','Annotation type','Symbol'}       ;   
             fh.DeleteFcn={@hTrackPad.SaveAnnotationTable,hTrackPad};
         end
         
@@ -1982,10 +1840,12 @@ function AnnotateTrack(hObject,EventData,hTrackPad)
             hTrackPad.CellProperties(3).Name='Subsets';
             for i=1:length(fnames)-1 %don't include pedigreeID
                 ndx=cellfun(@(x) strcmp(x,fnames{i}),data(:,1));
+                if sum(cellfun(@(x) isempty(x),data(ndx,2)))==0
                 hTrackPad.CellProperties(3).Type.(fnames{i})=data(ndx,2);
                 hTrackPad.CellProperties(3).Symbol.(fnames{i})=data(ndx,3);
                 hTrackPad.CellProperties(3).String.(fnames{i})=cellfun(@(x,y) [x ' (' y ')'],...
                     data(ndx,2),data(ndx,3),'UniformOutput',0);
+                end
             end
         end
         
