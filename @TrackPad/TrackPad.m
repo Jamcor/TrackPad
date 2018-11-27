@@ -1027,10 +1027,10 @@ function AnnotateTrack(hObject,EventData,hTrackPad)
             hTrackPad.ImageContextMenu.Cancel.Visible='off';
             hTrackPad.ImageContextMenu.ReturnToStart.Visible='off';
             hTrackPad.ImageContextMenu.GoToEnd.Visible='off';
-%             hfig=figure('Name','Annotate track','ToolBar','none',...
-%                 'MenuBar','none','NumberTitle','off','WindowStyle','modal','Units','normalized');
-                        hfig=figure('Name','Annotate track','ToolBar','none',...
-                            'MenuBar','none','NumberTitle','off','Units','normalized'); %without modal set
+            hfig=figure('Name','Annotate track','ToolBar','none',...
+                'MenuBar','none','NumberTitle','off','WindowStyle','modal','Units','normalized');
+%                         hfig=figure('Name','Annotate track','ToolBar','none',...
+%                             'MenuBar','none','NumberTitle','off','Units','normalized'); %without modal set
             handles=guihandles(hfig);
             set(hfig,'CloseRequestFcn',{@hTrackPad.CloseAnnotationFigure,hTrackPad});
             hTrackPad.AnnotationFigureHandle=hfig;
@@ -1049,8 +1049,8 @@ function AnnotateTrack(hObject,EventData,hTrackPad)
             
             hfig.Position(1)=0.6;
             hfig.Position(2)=0.15;
-            hfig.Position(3)=0.3;
-            hfig.Position(4)=0.65;
+            hfig.Position(3)=0.2;
+            hfig.Position(4)=0.3;
 %             hfig.Resize='Off';
             
             h=hfig.Position(4);
@@ -1064,10 +1064,10 @@ function AnnotateTrack(hObject,EventData,hTrackPad)
             
             for i=1:length(CellProperties)-1
                 str=[CellProperties(i).Name];
-                BGHeight=(length(CellProperties(i).Type)+1)*0.05;
-                h=h-BGHeight-10;
+                BGHeight=(length(CellProperties(i).Type)+1)*0.075;
+                h=h-BGHeight;
                 handles.(str).BG=uibuttongroup(hfig,'Visible','on','Units','normalized');
-                handles.(str).BG.Position=[0.1,(1-i*0.25),0.25,BGHeight];
+                handles.(str).BG.Position=[0.1,(1-i*0.25),0.8,BGHeight];
                 set(handles.(str).BG,'SelectionChangedFcn',{@hTrackPad.AnnotationHandler,hTrackPad});
                 
                 handles.(str).BG.Title=CellProperties(i).Name;
@@ -1083,8 +1083,10 @@ function AnnotateTrack(hObject,EventData,hTrackPad)
                 end
                 
             end
-                      
-   
+            
+            handles.Origin.BG.Position(2)=0.975-handles.Origin.BG.Position(4); %adjust position
+            handles.Fate.BG.Position(2)=handles.Origin.BG.Position(2)-handles.Fate.BG.Position(4); %adjust position
+
             %add buttons for annotation subsets
             subsets=CellProperties(3);
             str='Subsets';
@@ -1096,8 +1098,8 @@ function AnnotateTrack(hObject,EventData,hTrackPad)
             t = uitable('Parent', hfig,'ColumnEditable', true,'Data', Data,'ColumnName',{fnames{1:end-1}},'RowName',[],...
             'CellEditCallback',{@hTrackPad.AnnotationHandler,hTrackPad},'units','normalized');
             t.ColumnFormat=({subsets.String.(fnames{1}) subsets.String.(fnames{2}) subsets.String.(fnames{3}) subsets.String.(fnames{4})});
-            t.Position=[0.1 0.35 t.Extent(3) t.Extent(4)];
-        
+            t.Position=[0.05 0.35 0.9 t.Extent(4)];
+            t.Position(2)=0.975-handles.Fate.BG.Position(4)-handles.Origin.BG.Position(4)-t.Extent(4);
             
             % update state of annotation tool to reflect current track
             % annotation state
