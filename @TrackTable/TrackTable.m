@@ -208,7 +208,7 @@ classdef TrackTable < handle
             
             
             for i=1:length(annotationmatrix)
-                disp(['Processing track ' num2str(i)]);
+%                 disp(['Processing track ' num2str(i)]);
                 feature=annotationmatrix(i);
                 timestamps=feature.timestamps;
                 feature=rmfield(feature,'timestamps');
@@ -269,51 +269,51 @@ classdef TrackTable < handle
         end
         
         
-        %         function getTrajectories(hObject,EventData,hTrackTable)
-        %             allclones={hTrackTable.PedigreeData};
-        %             distancedata=getTrajectories(allclones);
-        %
-        %             timestamps=distancedata.TimeStamps;
-        %
-        %
-        %
-        %             distancetable=zeros(length(timestamps),1);
-        %             condition='condition';
-        %             for i=1:length(hTrackTable.TableData.Track_ID)
-        %                 %                 disp([num2str(i)]);
-        %
-        %                 T=timestamps(hTrackTable.CntrlObj.Tracks.tbl.Image_Number{i});
-        %                 T=(T-T(1))';
-        %                 X=hTrackTable.CntrlObj.Tracks.tbl.Position{i}(:,1);
-        %                 Y=hTrackTable.CntrlObj.Tracks.tbl.Position{i}(:,2);
-        %
-        %                 if i==1
-        %                     distancetable(1:length(T),1)=X;
-        %                     distancetable(1:length(T),end+1)=Y;
-        %                     distancetable(1:length(T),end+1)=T;
-        %                 else
-        %                     distancetable(1:length(T),end+1)=X;
-        %                     distancetable(1:length(T),end+1)=Y;
-        %                     distancetable(1:length(T),end+1)=T;
-        %                 end
-        %             end
-        %             [filename,~]=uiputfile('*.txt','Save cell trajectories as');
-        %             fid = fopen(filename, 'wt');
-        %             heading=repmat(1:i,3,1);
-        %             heading=reshape(heading,[1 i*3]);
-        %             heading=arrayfun(@(x) {num2str(x)},heading);
-        %             heading=strcat({'Track'},heading);
-        %             heading=strcat(heading,repmat({'_X' '_Y' '_T'},1,i));
-        %             fprintf(fid,'%s,',heading{1:end-1});
-        %             fprintf(fid,'%s\n',heading{end});
-        %
-        %             for i=1:size(distancetable,1)
-        %                 rowdata=distancetable(i,:);
-        %                 fprintf(fid,'%f,',rowdata(1:end-1));
-        %                 fprintf(fid,'%f\n',rowdata(end));
-        %             end
-        %             fclose(fid);
-        %         end
+                function getTrajectories(hObject,EventData,hTrackTable)
+                    allclones={hTrackTable.PedigreeData};
+                    distancedata=getTrajectories(allclones);
+        
+                    timestamps=distancedata.TimeStamps;
+        
+        
+        
+                    distancetable=zeros(length(timestamps),1);
+                    condition='condition';
+                    for i=1:length(hTrackTable.TableData.Track_ID)
+                        %                 disp([num2str(i)]);
+        
+                        T=timestamps(hTrackTable.CntrlObj.Tracks.tbl.Image_Number{i});
+                        T=(T-T(1))';
+                        X=hTrackTable.CntrlObj.Tracks.tbl.Position{i}(:,1);
+                        Y=hTrackTable.CntrlObj.Tracks.tbl.Position{i}(:,2);
+        
+                        if i==1
+                            distancetable(1:length(T),1)=X;
+                            distancetable(1:length(T),end+1)=Y;
+                            distancetable(1:length(T),end+1)=T;
+                        else
+                            distancetable(1:length(T),end+1)=X;
+                            distancetable(1:length(T),end+1)=Y;
+                            distancetable(1:length(T),end+1)=T;
+                        end
+                    end
+                    [filename,~]=uiputfile('*.txt','Save cell trajectories as');
+                    fid = fopen(filename, 'wt');
+                    heading=repmat(1:i,3,1);
+                    heading=reshape(heading,[1 i*3]);
+                    heading=arrayfun(@(x) {num2str(x)},heading);
+                    heading=strcat({'Track'},heading);
+                    heading=strcat(heading,repmat({'_X' '_Y' '_T'},1,i));
+                    fprintf(fid,'%s,',heading{1:end-1});
+                    fprintf(fid,'%s\n',heading{end});
+        
+                    for i=1:size(distancetable,1)
+                        rowdata=distancetable(i,:);
+                        fprintf(fid,'%f,',rowdata(1:end-1));
+                        fprintf(fid,'%f\n',rowdata(end));
+                    end
+                    fclose(fid);
+                end
         
         function track=getAnnotations(varargin)
             if length(varargin)==3
