@@ -1029,8 +1029,8 @@ function AnnotateTrack(hObject,EventData,hTrackPad)
             hTrackPad.ImageContextMenu.GoToEnd.Visible='off';
             hfig=figure('Name','Annotate track','ToolBar','none',...
                 'MenuBar','none','NumberTitle','off','WindowStyle','modal','Units','normalized');
-%                         hfig=figure('Name','Annotate track','ToolBar','none',...
-%                             'MenuBar','none','NumberTitle','off','Units','normalized'); %without modal set
+%           hfig=figure('Name','Annotate track','ToolBar','none',...
+%               'MenuBar','none','NumberTitle','off','Units','normalized'); %without modal set
             handles=guihandles(hfig);
             set(hfig,'CloseRequestFcn',{@hTrackPad.CloseAnnotationFigure,hTrackPad});
             hTrackPad.AnnotationFigureHandle=hfig;
@@ -1847,7 +1847,7 @@ function AnnotateTrack(hObject,EventData,hTrackPad)
                 hTrackPad.CellProperties(3).Type.(fnames{i})=data(ndx,2);
                 hTrackPad.CellProperties(3).Symbol.(fnames{i})=data(ndx,3);
                 hTrackPad.CellProperties(3).String.(fnames{i})=cellfun(@(x,y) [x ' (' y ')'],...
-                    data(ndx,2),data(ndx,3),'UniformOutput',0);
+                    data(ndx,2),data(ndx,3),'UniformOutput',0)';
                 end
             end
         end
