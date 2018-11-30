@@ -31,7 +31,6 @@ if isfield(tbl,'CellMask')
     complete_clone{i}.track{j}.Mask=squeeze(tbl.CellMask{trackids(j)});
 end
 
-
 stopreason=[tracks.Fate{trackids(j)}];
                     switch stopreason
                         case 'DI'

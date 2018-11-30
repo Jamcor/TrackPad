@@ -510,7 +510,7 @@ classdef TrackCollection < handle
             
             
             for i=1:length(tracks.Track_ID)
-                %                 disp(['track ' num2str(i)]);
+                                disp(['track ' num2str(i)]);
                 if ~isempty(obj.Tracks(i).ParentID)
                     tracks.Parent_ID(i)=obj.Tracks(i).ParentID;
                 else
@@ -520,12 +520,22 @@ classdef TrackCollection < handle
                 lastframe=obj.Tracks(i).Track.trackrange(2);
                 tracks.Fate{i}=obj.Tracks(i).Track.Track{lastframe}.Annotation.Symbol;
                 
+                if lastframe-firstframe>1
                 for j=1:length(annotations)
                     initial=obj.Tracks(i).Track.Track{firstframe+1}.Annotation.Symbol.(annotations{j});
                     final=obj.Tracks(i).Track.Track{lastframe-1}.Annotation.Symbol.(annotations{j});
                     tracks=setfield(tracks,['Initial_' annotations{j}],{i},{initial});
                     tracks=setfield(tracks,['Final_' annotations{j}],{i},{final});
                 end
+                
+                elseif lastframe-firstframe==1
+                for j=1:length(annotations)
+                    
+                    tracks=setfield(tracks,['Initial_' annotations{j}],{i},{'NA'});
+                    tracks=setfield(tracks,['Final_' annotations{j}],{i},{'NA'});
+                end
+                end
+                
                 
                 
             end
