@@ -135,7 +135,7 @@ classdef TrackTable < handle
             annotations=textscan(fid,repmat('%s',[1 length(header)]),'CollectOutput',true,'Delimiter',',');
             annotations=cell2table(annotations{:});
             annotations.Properties.VariableNames=header(:);
-            
+           
             
             %get fate outcomes as numeric code
             for i=1:length(hTrackTable.TableData.Fate)
@@ -208,13 +208,24 @@ classdef TrackTable < handle
             
             
             for i=1:length(annotationmatrix)
+                disp(['Processing track ' num2str(i)]);
                 feature=annotationmatrix(i);
                 timestamps=feature.timestamps;
                 feature=rmfield(feature,'timestamps');
                 
+                if length(timestamps)>=1
                 [transitionndx,unique_annotations]=structfun(@getTransitionTimes ,feature,'UniformOutput',0);
                 
                 transitiontimes=structfun(@(x) timestamps(x),transitionndx,'UniformOutput',0);
+                
+                elseif isempty(timestamps) %for cells with only 2 frames (they don't have annotation subsets)
+                    
+                transitionndx=structfun(@(x) 1 ,feature,'UniformOutput',0);
+                unique_annotations=structfun(@(x) 'NA' ,feature,'UniformOutput',0);
+                
+                transitiontimes=structfun(@(x) 0,transitionndx,'UniformOutput',0);
+                    
+                end
                 
                 unique_annotations=struct2table(unique_annotations);
                 transitiontimes=struct2table(transitiontimes);
@@ -339,20 +350,20 @@ classdef TrackTable < handle
             end
             numb_annotations=length(hTrackTable.CntrlObj.ImageStack.AcquisitionTimes-2);
             for i=1:length(hTrackTable.TableData.Track_ID)
-                
-                T=track(i).timestamps';
+%                 disp(['Processing track ' num2str(i)]);
+                T=track(i).timestamps;
                 T(end+1:numb_annotations)=NaN;
                 AnnotationTable=[table(zeros(numb_annotations,1),'VariableNames',{'Time'})...
                     cell2table(repmat(cell(numb_annotations,1),1,length(annotations)),'VariableNames',annotations')];
-                AnnotationTable.Time=T;
+                AnnotationTable.Time=T';
                 for j=1:length(annotations)
-                    feature=track(i).(annotations{j})';
+                    feature=track(i).(annotations{j});
                     [uniquefeatures,transitionndx,~]=unique(feature);
                     if length(uniquefeatures)>1
                         transitiontime=AnnotationTable.Time(transitionndx(2));
                     end
                     feature(end+1:numb_annotations)={NaN};
-                    AnnotationTable.(annotations{j})=feature;
+                    AnnotationTable.(annotations{j})=feature';
                 end
                 AnnotationTable.Properties.VariableNames=strcat(['Track_' num2str(i) '_'], ['Time' annotations']);
                 if i==1
@@ -399,8 +410,38 @@ classdef TrackTable < handle
         function getCloneFile(hObject,EventData,hTrackTable)
             savepath=uigetdir([hTrackTable.CntrlObj.TrackPath],'Select location to save clone file');
             clone=hTrackTable.PedigreeData;
-            TrackFileName=strsplit(hTrackTable.CntrlObj.TrackFile ,'.');
-            save([savepath '\' TrackFileName{1} ' clonefile.mat'],'clone');
+            CloneFileName=strrep(hTrackTable.CntrlObj.TrackFile ,'trackfile.mat','clonefile.mat');
+           
+            if exist([savepath '\' CloneFileName],'file')
+                clonefile=clone; %trackpad clonefile
+                load([savepath '\' CloneFileName]); %loading 'clone' file from directory
+                is_mask_flag=CheckCegmentedMasks(clone);
+               
+                if is_mask_flag
+                    disp('Clone file already contains segmented masks');
+                    answer=questdlg('Clone file already exists do you want to merge or overwrite?','TrackPad','Merge','Overwrite','Cancel');
+                    
+                    if strcmp(answer,'Merge')
+                        %function to merge clone files if one alreay contains segmented cell masks
+                        clone=MergeCloneFiles(clone,clonefile);
+                        save([savepath '\' CloneFileName],'clone');
+                    elseif strcmp(answer,'Overwrite')
+                        disp('Overwriting clone file..');
+                        save([savepath '\' CloneFileName],'clone');
+                    end
+                    
+                elseif ~is_mask_flag
+                    clone=clonefile;
+                    disp('Updating clone file');
+                    save([savepath '\' CloneFileName],'clone');
+                end
+                
+            elseif ~exist([savepath '\' CloneFileName],'file')
+                disp('Saving clone file');
+                save([savepath '\' CloneFileName],'clone');
+                
+            end
+            
         end
         
     end

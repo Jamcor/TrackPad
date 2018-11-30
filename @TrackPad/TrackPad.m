@@ -1381,6 +1381,7 @@ function AnnotateTrack(hObject,EventData,hTrackPad)
         function SaveTracks(hObject,EventData,hTrackPad)
             CreateTable(hTrackPad.Tracks);
             [FileName,PathName,FilterIndex] = uiputfile('*.mat');
+            FileName=strrep(FileName,'.mat',' trackfile.mat'); %add trackfile suffix
             tbl=hTrackPad.Tracks.tbl;
             CellProperties=hTrackPad.CellProperties;
             TimeStamps=hTrackPad.ImageStack.AcquisitionTimes;
