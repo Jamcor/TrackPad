@@ -781,6 +781,7 @@ classdef TrackPad < handle
         end
         
         function SelectTrack(hObject,EventData,hTrackPad)
+            if ~isempty(hTrackPad.Tracks)
             % make all tracks selectable in current frame
             hTrackPad.ImageContextMenu.EditTrack.Visible='off';
             hTrackPad.ImageContextMenu.StopEditTrack.Visible='off';
@@ -799,6 +800,7 @@ classdef TrackPad < handle
 %                 delete(annotation_handles);
                 hTrackPad.AnnotationDisplay='PedigreeID'; %turn on pedigree annotations
             end
+            
                 n=length(hTrackPad.Tracks.Tracks);
                 m=hTrackPad.ImageStack.CurrentNdx; % make all tracks in current frame selectable
                 for i=1:n
@@ -821,11 +823,13 @@ classdef TrackPad < handle
                         set(hAnnotation,'ButtonDownFcn',{@hTrackPad.getAnnotationInfo,...
                             i,hTrackPad.Tracks});
                     end
-                end           
-            
+                end      
             hTrackPad.ImageContextMenu.DeleteTrack.Visible='off';
             hTrackPad.ImageContextMenu.AnnotateTrack.Visible='off';
             hTrackPad.ImageContextMenu.Reposition.Visible='off';
+            elseif isempty(hTrackPad.Tracks)
+                errordlg('No tracks loaded');
+            end
         end
         
         %cancels track selection
@@ -1027,10 +1031,10 @@ function AnnotateTrack(hObject,EventData,hTrackPad)
             hTrackPad.ImageContextMenu.Cancel.Visible='off';
             hTrackPad.ImageContextMenu.ReturnToStart.Visible='off';
             hTrackPad.ImageContextMenu.GoToEnd.Visible='off';
-            hfig=figure('Name','Annotate track','ToolBar','none',...
-                'MenuBar','none','NumberTitle','off','WindowStyle','modal','Units','normalized');
-%           hfig=figure('Name','Annotate track','ToolBar','none',...
-%               'MenuBar','none','NumberTitle','off','Units','normalized'); %without modal set
+%             hfig=figure('Name','Annotate track','ToolBar','none',...
+%                 'MenuBar','none','NumberTitle','off','WindowStyle','modal','Units','normalized');
+          hfig=figure('Name','Annotate track','ToolBar','none',...
+              'MenuBar','none','NumberTitle','off','Units','normalized'); %without modal set
             handles=guihandles(hfig);
             set(hfig,'CloseRequestFcn',{@hTrackPad.CloseAnnotationFigure,hTrackPad});
             hTrackPad.AnnotationFigureHandle=hfig;
@@ -1303,6 +1307,7 @@ function AnnotateTrack(hObject,EventData,hTrackPad)
             [FileName,PathName,FilterIndex] = uigetfile('*.mat','Get track table');
             s=load([PathName,FileName]);
             hTrackPad.CellProperties=s.CellProperties;
+            hTrackPad.CellProperties(3).String=structfun(@(x) reshape(x',[1 length(x)]),hTrackPad.CellProperties(3).String,'UniformOutput',0); %force to be row vectors for compatability between versions
             fnames=fieldnames(hTrackPad.CellProperties(3).Type);
             hTrackPad.AnnotationDisplay='PedigreeID'; %set pedigree annotation as default when loading tracks
             hTrackPad.TrackFile=FileName;
