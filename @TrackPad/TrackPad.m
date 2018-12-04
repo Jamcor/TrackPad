@@ -1031,10 +1031,10 @@ function AnnotateTrack(hObject,EventData,hTrackPad)
             hTrackPad.ImageContextMenu.Cancel.Visible='off';
             hTrackPad.ImageContextMenu.ReturnToStart.Visible='off';
             hTrackPad.ImageContextMenu.GoToEnd.Visible='off';
-%             hfig=figure('Name','Annotate track','ToolBar','none',...
-%                 'MenuBar','none','NumberTitle','off','WindowStyle','modal','Units','normalized');
-          hfig=figure('Name','Annotate track','ToolBar','none',...
-              'MenuBar','none','NumberTitle','off','Units','normalized'); %without modal set
+            hfig=figure('Name','Annotate track','ToolBar','none',...
+                'MenuBar','none','NumberTitle','off','WindowStyle','modal','Units','normalized');
+%           hfig=figure('Name','Annotate track','ToolBar','none',...
+%               'MenuBar','none','NumberTitle','off','Units','normalized'); %without modal set
             handles=guihandles(hfig);
             set(hfig,'CloseRequestFcn',{@hTrackPad.CloseAnnotationFigure,hTrackPad});
             hTrackPad.AnnotationFigureHandle=hfig;
