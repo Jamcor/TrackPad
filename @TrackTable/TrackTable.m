@@ -188,7 +188,7 @@ classdef TrackTable < handle
             fprintf(fid,'%s,',heading{1:end-1});
             fprintf(fid,'%s\n',heading{end});
             
-            for i=1:length(pedigreedata)
+            for i=1:size(pedigreedata,1)
                 numericalrowdata=pedigreedata(i,:);
                 stringrowdata=annotationtable(i,:);
                 fprintf(fid,'%s,',condition{:});
@@ -402,7 +402,8 @@ classdef TrackTable < handle
             channels={'Phase'};
             
             imagestack=hTrackTable.CntrlObj.ImageStack;
-            GetCellImages(allclones,1:maxclones,1:maxtracks,hTrackTable.CellImagePatchBuffer,pathname,channels,imagestack)
+            hTrackTable.PedigreeData=GetCellImagesv2(allclones,1:maxclones,1:maxtracks,...
+                hTrackTable.CellImagePatchBuffer,pathname,channels,imagestack);
             
         end
         
