@@ -74,7 +74,24 @@ classdef TrackPad < handle
             set(toolbarhandle,'HandleVisibility','on');
             delete(toolbarhandle([1:9,12:end]));
             
-            %%add user defined toolbar features
+            matlab_version=version('-release'); %matlab toolbar changed starting from 2018b - no zoom in fig toolbar
+            year=str2num(matlab_version(1:4)); 
+            if year==2018
+                if strcmp(char(matlab_version(end)),'b')
+                    addToolbarExplorationButtons(gcf);
+                    obj.ToolBarHandle=findall(gcf,'tag','FigureToolBar');
+                    toolbarhandle=allchild(obj.ToolBarHandle);
+                    delete(toolbarhandle(1:end-2));                  
+                end
+            elseif year>2018
+                 addToolbarExplorationButtons(gcf);
+                 addToolbarExplorationButtons(gcf);
+                 obj.ToolBarHandle=findall(gcf,'tag','FigureToolBar');
+                 toolbarhandle=allchild(obj.ToolBarHandle);
+                 delete(toolbarhandle(1:end-2));                 
+            end
+            
+            %%add other user defined toolbar features
             
             %add save and open pushbuttons and use same callback as options
             %in dropdown menu (below)
@@ -569,6 +586,7 @@ classdef TrackPad < handle
                             if hTrackPad.Track.Editing
                             hTrackPad.ImageContextMenu.StopTrack.Visible='off';
                             hTrackPad.ImageContextMenu.StopEditTrack.Visible='on';
+                            hTrackPad.ImageContextMenu.ContinueTrack.Visible='on';
                             hTrackPad.ImageContextMenu.EditTrack.Visible='off'; 
                             elseif ~hTrackPad.Track.Editing
                             hTrackPad.ImageContextMenu.StopTrack.Visible='on';
