@@ -146,6 +146,8 @@ classdef TrackTable < handle
                         hTrackTable.TableData.FateNumber(i)=2;
                     case 'NC'
                         hTrackTable.TableData.FateNumber(i)=0;
+                    case 'LO'
+                        hTrackTable.TableData.FateNumber(i)=3;
                 end
             end
             hTrackTable.TableData.FateNumber=hTrackTable.TableData.FateNumber';
@@ -178,7 +180,7 @@ classdef TrackTable < handle
             %assemble all pedigree data
             pedigreedata=[[hTrackTable.TableData.Track_ID{:}]',[hTrackTable.TableData.Parent_ID{:}]',...
                 [hTrackTable.TableData.Ancestor_ID{:}]',[hTrackTable.TableData.Progeny_ID{:}]',...
-                [hTrackTable.TableData.Generation_ID{:}]',hTrackTable.TableData.FateNumber,...
+                [hTrackTable.TableData.Generation_ID{:}]',hTrackTable.TableData.FateNumber',...
                 birthtimes,deathtimes,lifetimes,meandistances];
             heading={'Condition','TrackID' 'ParentID' 'AncestorID' 'ProgenyID' 'Generation' 'Fate' ...
                 'BirthTime' 'StopTime' 'Lifetime','MeanDistance',fnames{:}};
@@ -188,7 +190,7 @@ classdef TrackTable < handle
             fprintf(fid,'%s,',heading{1:end-1});
             fprintf(fid,'%s\n',heading{end});
             
-            for i=1:length(pedigreedata)
+            for i=1:size(pedigreedata,1)
                 numericalrowdata=pedigreedata(i,:);
                 stringrowdata=annotationtable(i,:);
                 fprintf(fid,'%s,',condition{:});
@@ -402,7 +404,8 @@ classdef TrackTable < handle
             channels={'Phase'};
             
             imagestack=hTrackTable.CntrlObj.ImageStack;
-            GetCellImages(allclones,1:maxclones,1:maxtracks,hTrackTable.CellImagePatchBuffer,pathname,channels,imagestack)
+            hTrackTable.PedigreeData=GetCellImagesv2(allclones,1:maxclones,1:maxtracks,...
+                hTrackTable.CellImagePatchBuffer,pathname,channels,imagestack);
             
         end
         
