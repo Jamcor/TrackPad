@@ -56,7 +56,7 @@ for h=1:length(clonenumb)
         for j=1:1:length(imagetimes) 
             time=imagetimes(j);
             disp(['Processing frame ' num2str(j)]);
-            [cellimage,relframeid,cmap]=GetCellImagePatches(clone,currentclone,tracknumb(i),time,buff,channels{g},imageobj);
+            [cellimage,relframeid,cmap]=GetCellImagePatchesv2(clone,currentclone,tracknumb(i),time,buff,channels{g},imageobj);
             grayim=ind2gray(cellimage,cmap);
             if j==1
                 [r,c]=size(grayim);               

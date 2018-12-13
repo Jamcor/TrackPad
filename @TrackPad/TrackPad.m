@@ -1372,6 +1372,14 @@ function AnnotateTrack(hObject,EventData,hTrackPad)
                     clones=unique([hTrackPad.Tracks.TableData.Ancestor_ID{:}]);
                     clones=arrayfun(@(x) ['Pedigree ' num2str(x)],clones,'UniformOutput',0);
                     hTrackPad.TrackPanel.ClonesPopup.String=clones;
+                    
+                    hTrackPad.TrackTable=TrackTable;
+                    hTrackPad.TrackTable.CntrlObj=hTrackPad;
+                    hTrackPad.TrackTable.TableData=SubTable(hTrackPad.Tracks);
+                  if isfield(s,'clone')
+                      hTrackPad.TrackTable.PedigreeData=s.clone;
+                  end
+                    
                 end
             else
                 tic;
@@ -1404,12 +1412,25 @@ function AnnotateTrack(hObject,EventData,hTrackPad)
         function SaveTracks(hObject,EventData,hTrackPad)
             CreateTable(hTrackPad.Tracks);
             [FileName,PathName,FilterIndex] = uiputfile('*.mat');
-            FileName=strrep(FileName,'.mat',' trackfile.mat'); %add trackfile suffix
+%             if ~strfind(FileName,'trackfile.mat')
+%             FileName=strrep(FileName,'.mat',' trackfile.mat'); %add trackfile suffix
+%             elseif strfind(FileName,'trackfile.mat') 
+%                 
+%             end
             tbl=hTrackPad.Tracks.tbl;
             CellProperties=hTrackPad.CellProperties;
             TimeStamps=hTrackPad.ImageStack.AcquisitionTimes;
             ImagePath=hTrackPad.ImageStack.PathName;
-            save([PathName,FileName],'tbl','CellProperties','TimeStamps','ImagePath','-v7.3');
+            
+            %prepare clone file
+%             hTrackPad.TrackTable=TrackTable;
+%             hTrackPad.TrackTable.CntrlObj=hTrackPad;
+%             hTrackPad.TrackTable.TableData=SubTable(hTrackPad.Tracks);
+            hTrackPad.TrackTable.PedigreeData=CreateCloneFiles(hTrackPad.TrackTable,hTrackPad.Tracks.tbl,...
+                hTrackPad.ImageStack.AcquisitionTimes);
+            clone=hTrackPad.TrackTable.PedigreeData;
+            
+            save([PathName,FileName],'tbl','CellProperties','TimeStamps','ImagePath','clone','-v7.3');
         end
         
         function HotKeyFcn(hObject,EventData,hTrackPad)
@@ -2176,7 +2197,7 @@ function AnnotateTrack(hObject,EventData,hTrackPad)
                 hTrackPad.TrackTable=TrackTable;
                 hTrackPad.TrackTable.CntrlObj=hTrackPad;
                 hTrackPad.TrackTable.TableData=SubTable(hTrackPad.Tracks);
-                hTrackPad.TrackTable.PedigreeData=CreateCloneFiles(hTrackPad.TrackTable.TableData,hTrackPad.Tracks.tbl,...
+                hTrackPad.TrackTable.PedigreeData=CreateCloneFiles(hTrackPad.TrackTable,hTrackPad.Tracks.tbl,...
                     hTrackPad.ImageStack.AcquisitionTimes);
                 CreateTrackTable(hTrackPad.TrackTable);
             end
