@@ -1423,9 +1423,9 @@ function AnnotateTrack(hObject,EventData,hTrackPad)
             ImagePath=hTrackPad.ImageStack.PathName;
             
             %prepare clone file
-%             hTrackPad.TrackTable=TrackTable;
-%             hTrackPad.TrackTable.CntrlObj=hTrackPad;
-%             hTrackPad.TrackTable.TableData=SubTable(hTrackPad.Tracks);
+            hTrackPad.TrackTable=TrackTable;
+            hTrackPad.TrackTable.CntrlObj=hTrackPad;
+            hTrackPad.TrackTable.TableData=SubTable(hTrackPad.Tracks);
             hTrackPad.TrackTable.PedigreeData=CreateCloneFiles(hTrackPad.TrackTable,hTrackPad.Tracks.tbl,...
                 hTrackPad.ImageStack.AcquisitionTimes);
             clone=hTrackPad.TrackTable.PedigreeData;
