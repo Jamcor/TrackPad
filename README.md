@@ -6,7 +6,7 @@ The TrackPad platform was developed by Dr Robert Nordon @ the University of New 
 Dr James Cornwell @ the University of Sydney has contributed to GUI development, user-experience, and computational speed.  
 
 # Hardware and software requirements
-*MATLAB 2015a or later (including Statistics and Machine Learning Toolbox, Image Processing Toolbox)
+*MATLAB 2015a or later (including Parallel Processing Toolbox, Curve Fitting Toolbox, Statistics and Machine Learning Toolbox, Image Processing Toolbox)
 
 *Min. 16GB ram
 
