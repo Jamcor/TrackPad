@@ -25,6 +25,11 @@ classdef avatar< handle
         HideSymbolEvent
     end
     
+    methods (Static=true)
+        [TruthSet,ROCtbl]=AnalyseAvatarTracks(truthtable,avatartracks,avatarpath);
+        [min_rho, sr]=AnalyseROC(TruthSet,ROCtbl);
+    end
+    
     methods
         function obj=avatar(GUIHandle,TruthTable,parameter)
             obj.TruthTable=TruthTable;
@@ -44,8 +49,12 @@ classdef avatar< handle
 %              for i=191:height(obj.TruthTable)
             for i=1:obj.MaxTracks
                 if isnan(obj.NucleusRadius) % use truthset
+                    try
                     obj.GUIHandle.CurrentTrackingParameters.NucleusRadius=...
                         round(mean(obj.TruthTable.Position{i}(1,3:4))); % use truthset radius
+                    catch
+                        errordlg(['There are only ' num2str(length(obj.TruthTable.Position)) ' tracks!'])
+                    end
                 else %don't use truthset
                     obj.GUIHandle.CurrentTrackingParameters.NucleusRadius=obj.NucleusRadius;
                 end
