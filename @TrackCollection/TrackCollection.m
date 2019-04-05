@@ -340,10 +340,16 @@ classdef TrackCollection < handle
                 obj.Tracks(i).Track=obj.CntrlObj.Track; %add current track to list of tracks
                 if ~isnan(Parent_ID)
                     obj.Tracks(i).ParentID=Parent_ID;
-                    obj.Tracks(i).Parent=obj.Tracks(Parent_ID).Track; %obk.track
+%                     obj.Tracks(i).Parent=obj.Tracks(Parent_ID).Track; %obk.track
                 else
                     obj.Tracks(i).ParentID=[];
                     obj.Tracks(i).Parent=[];
+                end
+            end
+            % assign parent track when all tracks are written
+            for i=1:height(obj.tbl)
+                if ~isnan(obj.Tracks(i).ParentID)
+                    obj.Tracks(i).Parent=obj.Tracks(obj.Tracks(i).ParentID).Track;
                 end
             end
             obj.CntrlObj.ImageContextMenu.EditTrack.Visible='off';
@@ -631,6 +637,100 @@ classdef TrackCollection < handle
             tracks.Ancestor_ID=arrayfun(@(x) {x},tracks.Ancestor_ID);
             tracks.Progeny_ID=arrayfun(@(x) {x},tracks.Progeny_ID);
             tracks.Generation_ID=arrayfun(@(x) {x},tracks.Generation_ID);
+            return
+        end
+        
+        function Clones=CreateCloneFiles(obj)
+            % get all ancestors and timestamps
+            TimeStamps=obj.CntrlObj.ImageStack.AcquisitionTimes;
+            %update obj.TableData
+            obj.TableData=obj.SubTable();
+            tbl=obj.tbl;
+            % update
+            tracks=obj.TableData;
+%             if ~isempty(obj.CntrlObj.TrackNavigator)
+%                 if ~isempty(obj.CntrlObj.TrackNavigator.PedigreeData)
+%                     pedigreedata=obj.CntrlObj.TrackNavigator.PedigreeData;
+%                 else
+%                     pedigreedata=[];
+%                 end
+%             else
+%                 pedigreedata=[];
+%             end
+            numb_tracks=length(tracks.Track_ID);
+            ancestor_IDs=unique([tracks.Ancestor_ID{:}]);
+            Clones={};
+
+            for i=1:length(ancestor_IDs)
+                disp(['Ancestor is ' num2str(ancestor_IDs(i))]);
+                Clones{i}.TimeStamps=TimeStamps;
+                familyndx=([tracks.Ancestor_ID{:}]==ancestor_IDs(i));
+                trackids=[tracks.Track_ID{familyndx}];
+
+                for j=1:length(trackids)
+                    disp(['Progeny is ' num2str(trackids(j))]);
+                    Clones{i}.track{j}.TrackNum=tracks.Progeny_ID{trackids(j)};
+                    try
+                    Clones{i}.track{j}.T=tbl.time{trackids(j)};
+                    catch
+                        disp('here');
+                    end
+                    Clones{i}.track{j}.X=tbl.Position{trackids(j)}(:,1);
+                    Clones{i}.track{j}.Y=tbl.Position{trackids(j)}(:,2);
+                    Clones{i}.track{j}.Width=tbl.Position{trackids(j)}(:,3);
+                    Clones{i}.track{j}.Height=tbl.Position{trackids(j)}(:,4);
+                    Clones{i}.track{j}.Annotation_type=tbl.Annotation_type{trackids(j)};
+                    Clones{i}.track{j}.Annotation_Symbol=tbl.Annotation_Symbol{trackids(j)};
+                    Clones{i}.track{j}.Annotation_Name=tbl.Annotation_Name{trackids(j)};
+
+                    %      Clones{i}.track{j}.BirthTime=Clones{i}.track{j}.T(1)-TimeStamps(1);
+                    %    Clones{i}.track{j}.DeathTime=Clones{i}.track{j}.T(end)-TimeStamps(1);
+                    Clones{i}.track{j}.BirthTime=Clones{i}.track{j}.T(1);
+                    Clones{i}.track{j}.DeathTime=Clones{i}.track{j}.T(end);
+                    %    Clones{i}.track{j}.CellImages=tbl.Cell_Image{trackids(j)}
+                    %    Clones{i}.track{j}.CellMask=tbl.Position{trackids(j)}
+
+                    if isfield(tbl,'CellMask')
+
+                        Clones{i}.track{j}.Mask=squeeze(tbl.CellMask{trackids(j)});
+                    end
+%                     if ~isempty(pedigreedata)
+%                         if i<=length(pedigreedata)
+%                             if isfield(pedigreedata{i}.track{j},'CropCoordinates')
+%                                 Clones{i}.track{j}.CropCoordinates=pedigreedata{i}.track{j}.CropCoordinates;
+%                             end
+%                         end
+%                     end  % rogue code: RN!
+
+
+                    stopreason=[tracks.Fate{trackids(j)}];
+                    switch stopreason
+                        case 'DI'
+                            Clones{i}.track{j}.StopReason=1;
+                        case 'NC'
+                            Clones{i}.track{j}.StopReason=0;
+                        case 'DE'
+                            Clones{i}.track{j}.StopReason=2;
+                        case 'LO'
+                            Clones{i}.track{j}.StopReason=3;
+                        case 'L'
+                            Clones{i}.track{j}.StopReason=3;
+                    end
+
+                end
+
+            end
+
+            % if length(varargin)==2
+            %     condition=varargin{1};
+            %     savepath=varargin{2};
+            % if ~isdir([savepath condition])
+            %    mkdir([savepath condition]);
+            % end
+            % save([savepath condition '\' condition ' clonefile.mat'],'Clones');
+            % else
+            %     save([condition ' clonefile.mat'],'Clones');
+            % end
             return
         end
         
