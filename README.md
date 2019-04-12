@@ -32,4 +32,4 @@ COLO316 cell line. 20 min acquisition frequency over 72hrs. 20x objective. 3x3 c
 
 Any questions should be directed to Dr Robert Nordon (r.nordon@unsw.edu.au) or Dr James Cornwell (cornwellja@mail.nih.gov)
 
-February 2018
+April 2019
