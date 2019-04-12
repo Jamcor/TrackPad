@@ -52,7 +52,7 @@ classdef TrackPad < handle
                         else
                             error('Not an ImageStack object');
                         end
-                    otherwise
+                    case 'No'
                         evalin('base','StackData=ImageStack;'); % create a StackDate object
                         evalin('base','StackData.getImageStack;');
                         obj.ImageStack=evalin('base','StackData;');
@@ -357,10 +357,12 @@ classdef TrackPad < handle
                 uimenu(obj.AnnotationDisplayMenuHandle,'Label',fnames{i},...
                     'Callback',{@obj.ChangeAnnotationDisplay,obj},'Tag','Change annotation display');
             end
-                        uimenu(obj.AnnotationDisplayMenuHandle,'Label','None',...
-                    'Checked','on','Callback',{@obj.ChangeAnnotationDisplay,obj},'Tag','Change annotation display');
+            uimenu(obj.AnnotationDisplayMenuHandle,'Label','None',...
+                'Checked','off','Callback',{@obj.ChangeAnnotationDisplay,obj},'Tag','Change annotation display');
+            ndx=contains({obj.AnnotationDisplayMenuHandle.Children.Label},'PedigreeID');
+            obj.AnnotationDisplayMenuHandle.Children(ndx).Checked='on';
             
-            obj.AnnotationDisplay='None'; %set fluorescent annotation subsets by default
+            obj.AnnotationDisplay='PedigreeID'; %set PedigreeID on
             
             %add optimisation menu
             OptimiseMenuHandle = uimenu(obj.FigureHandle,'Label','Optimise');
@@ -570,7 +572,8 @@ classdef TrackPad < handle
                         condition1=hTrackPad.ImageStack.CurrentNdx>=trackrange(1) && hTrackPad.ImageStack.CurrentNdx<=trackrange(2); %between first and last frame
                         condition2=hTrackPad.ImageStack.LastNdx>=trackrange(1) && hTrackPad.ImageStack.LastNdx<=trackrange(2); %not first frame 
                         
-                        if (hTrackPad.Tracks.CurrentTrackID==0) || hTrackPad.Tracks.Editing % in track or edit mode
+%                         if (hTrackPad.Tracks.CurrentTrackID==0) || hTrackPad.Tracks.Editing % in track or edit mode
+                        if (hTrackPad.Tracks.CurrentTrackID==0) 
                             hTrackPad.Track.CurrentEllipse=hTrackPad.Track.Track{n}.EllipseHandle;
                             if condition1 && condition2
                                 set(hTrackPad.Track.Track{hTrackPad.ImageStack.LastNdx}.EllipseHandle,'Visible','off');
@@ -586,17 +589,18 @@ classdef TrackPad < handle
 %                             hTrackPad.ImageContextMenu.ContinueTrack.Visible='off';
 %                             end
                             
-                            if hTrackPad.Track.Editing
-                                hTrackPad.ImageContextMenu.StopTrack.Visible='off';
-                                hTrackPad.ImageContextMenu.StopEditTrack.Visible='on';
-                                hTrackPad.ImageContextMenu.ContinueTrack.Visible='on';
-                                hTrackPad.ImageContextMenu.EditTrack.Visible='off'; 
-                            elseif ~hTrackPad.Track.Editing
-                                hTrackPad.ImageContextMenu.StopTrack.Visible='on';
-                                hTrackPad.ImageContextMenu.StopEditTrack.Visible='off';   
-                                hTrackPad.ImageContextMenu.EditTrack.Visible='off'; 
-                            end
-                            
+%                             if hTrackPad.Track.Editing
+%                                % hTrackPad.ImageContextMenu.StopTrack.Visible='off';
+%                                 hTrackPad.ImageContextMenu.StopTrack.Visible='on';
+%                                 hTrackPad.ImageContextMenu.StopEditTrack.Visible='on';
+%                                 hTrackPad.ImageContextMenu.ContinueTrack.Visible='on';
+%                                 hTrackPad.ImageContextMenu.EditTrack.Visible='off'; 
+%                             elseif ~hTrackPad.Track.Editing
+%                                 hTrackPad.ImageContextMenu.StopTrack.Visible='on';
+%                                 hTrackPad.ImageContextMenu.StopEditTrack.Visible='off';   
+%                                 hTrackPad.ImageContextMenu.EditTrack.Visible='off'; 
+%                             end % does not have editing mode anymore!
+%                             
                             hTrackPad.ImageContextMenu.Reposition.Visible='on';
                         else
                             hTrackPad.ImageContextMenu.AnnotateTrack.Visible='on';
@@ -608,7 +612,11 @@ classdef TrackPad < handle
                             set(hTrackPad.Track.CurrentEllipse,'Visible','on');
                         end
                     elseif isempty(hTrackPad.Track.Track{n}) % don't show context menu if the is no ellipse
-                        if (hTrackPad.Tracks.CurrentTrackID==0) || hTrackPad.Tracks.Editing
+%                         if (hTrackPad.Tracks.CurrentTrackID==0) || hTrackPad.Tracks.Editing
+%                             set(hTrackPad.Track.CurrentEllipse,'Visible','off');
+%                          % editing mode discontinued
+%                         end
+                        if (hTrackPad.Tracks.CurrentTrackID==0)
                             set(hTrackPad.Track.CurrentEllipse,'Visible','off');
                         end
                         hTrackPad.ImageContextMenu.EditTrack.Visible='off';
@@ -766,7 +774,7 @@ classdef TrackPad < handle
             hTrackPad.ImageContextMenu.DeleteTrack.Visible='off';
             hTrackPad.ImageContextMenu.SelectTrack.Visible='on';
             %append track to TrackCollection object
-            if ~hTrackPad.Tracks.CurrentTrackID
+            if (hTrackPad.Tracks.CurrentTrackID==0)&&(hTrackPad.Tracks.EditedTrackID==0) % not editing track, need to append to trackcollection
                 hTrackPad.Tracks.Append;
                 hTrackPad.ImageContextMenu.StartTrack.Visible='on';
 
@@ -776,16 +784,18 @@ classdef TrackPad < handle
 %                 hTrackPad.Tracks=
                 %delete listeners
                 
-            else
+            elseif hTrackPad.Tracks.EditedTrackID>0 % need to replace with edited track
 %                 if hTrackPad.Track.Editing
              % selected existing track for editing
-                hTrackPad.Tracks.Tracks(hTrackPad.Tracks.CurrentTrackID).Track=hTrackPad.Track;
+%                 hTrackPad.Tracks.Tracks(hTrackPad.Tracks.EditedTrackID).Track=hTrackPad.Track;
                 delete(hTrackPad.Track.PauseListenerHandle);
                 delete(hTrackPad.Track.StopListenerHandle);
                 delete(hTrackPad.Track.LostCellListener);
                 delete(hTrackPad.Track.EndTrackListener);
-                hTrackPad.Tracks.AppendEditedTrack;                
+                hTrackPad.Tracks.Replace;         
                 hTrackPad.Track=[];% no longer can be edited
+                hTrackPad.Tracks.EditedTrackID=0; % get out of edit mode
+                hTrackPad.Tracks.CurrentTrackID=0; % ready to track a new track
                 hellipse=findall(gca,'Tag','imellipse');%remove ellipse
                 delete(hellipse);     
 
@@ -795,8 +805,10 @@ classdef TrackPad < handle
 %                         setColor(hTrackPad.Tracks.Tracks(i).Track.Track{j}.EllipseHandle,'b')
 %                     end
 %                 end
-                hTrackPad.Tracks.Editing=false;
-                hTrackPad.Tracks.CurrentTrackID=0;% reset to append mode
+%                 hTrackPad.Tracks.Editing=false; % Editing mode
+%                 discontinued
+                hTrackPad.Tracks.CurrentTrackID=0;% reset to new track mode
+                hTrackPad.Tracks.EditedTrackID=0; % get out of edit mode.
                 hTrackPad.ImageContextMenu.StartTrack.Visible='on';
             end
         end
@@ -877,14 +889,14 @@ classdef TrackPad < handle
                 end
             end
             
-            if hTrackPad.Tracks.Editing
-                hTrackPad.Tracks.Editing=false;
-                delete(findobj(gcf,'Tag','imellipse'));
-            end
+%             if hTrackPad.Tracks.Editing
+%                 hTrackPad.Tracks.Editing=false;
+%                 delete(findobj(gcf,'Tag','imellipse'));
+%             end % editing mode discontinued
             
             hTrackPad.Tracks.CurrentTrackID=0;
             hTrackPad.Tracks.CurrentTrack=[];
-            hTrackPad.Tracks.Editing=false;
+%             hTrackPad.Tracks.Editing=false; % editing mode discontinued
             hTrackPad.Track=[]; %no current track
             hTrackPad.TrackPanel.CurrentTrackDisplay.String='No track selected';
             hTrackPad.TrackPanel.CurrentTrackDisplay.ForegroundColor='red';
@@ -932,19 +944,19 @@ classdef TrackPad < handle
                 hTrackPad.ImageContextMenu.Reposition.Visible='off';
                 hTrackPad.ImageContextMenu.StopTrack.Visible='off';
                 hTrackPad.ImageContextMenu.DeleteTrack.Visible='on';
-                hTrackPad.ImageContextMenu.SelectTrack.Visible='on';
+                hTrackPad.ImageContextMenu.SelectTrack.Visible='off';
                 hTrackPad.ImageContextMenu.StartTrack.Visible='off';
                 hTrackPad.ImageContextMenu.AnnotateTrack.Visible='on';
                 hTrackPad.ImageContextMenu.Cancel.Visible='off'; %cancel
                 hTrackPad.ImageContextMenu.ReturnToStart.Visible='off';
                 hTrackPad.ImageContextMenu.GoToEnd.Visible='on';
 
-                if hTrackPad.Track.Editing
+                if hTrackPad.Tracks.EditedTrackID>0
                     hTrackPad.ImageContextMenu.EditTrack.Visible='off';
-                    hTrackPad.ImageContextMenu.StopEditTrack.Visible='on';
-                elseif ~hTrackPad.Track.Editing
+%                     hTrackPad.ImageContextMenu.StopEditTrack.Visible='on';
+                else
                     hTrackPad.ImageContextMenu.EditTrack.Visible='on';
-                    hTrackPad.ImageContextMenu.StopEditTrack.Visible='off';                
+%                     hTrackPad.ImageContextMenu.StopEditTrack.Visible='off';                
                 end
 
                 %get track info
@@ -991,19 +1003,19 @@ classdef TrackPad < handle
                 hTrackPad.ImageContextMenu.Reposition.Visible='off';
                 hTrackPad.ImageContextMenu.StopTrack.Visible='off';
                 hTrackPad.ImageContextMenu.DeleteTrack.Visible='on';
-                hTrackPad.ImageContextMenu.SelectTrack.Visible='on';
+                hTrackPad.ImageContextMenu.SelectTrack.Visible='off';
                 hTrackPad.ImageContextMenu.StartTrack.Visible='off';
                 hTrackPad.ImageContextMenu.AnnotateTrack.Visible='on';
                 hTrackPad.ImageContextMenu.Cancel.Visible='off';
                 hTrackPad.ImageContextMenu.ReturnToStart.Visible='on';
                 hTrackPad.ImageContextMenu.GoToEnd.Visible='off';
 
-                if hTrackPad.Track.Editing
-                hTrackPad.ImageContextMenu.EditTrack.Visible='off';
-                hTrackPad.ImageContextMenu.StopEditTrack.Visible='on';
-                elseif ~hTrackPad.Track.Editing
-                hTrackPad.ImageContextMenu.EditTrack.Visible='on';
-                hTrackPad.ImageContextMenu.StopEditTrack.Visible='off';                
+                if hTrackPad.Tracks.EditedTrackID>0
+                    hTrackPad.ImageContextMenu.EditTrack.Visible='off';
+%                     hTrackPad.ImageContextMenu.StopEditTrack.Visible='on';
+                else
+                    hTrackPad.ImageContextMenu.EditTrack.Visible='on';
+%                     hTrackPad.ImageContextMenu.StopEditTrack.Visible='off';                
                 end
 
                 %get track info
@@ -1393,6 +1405,14 @@ function AnnotateTrack(hObject,EventData,hTrackPad)
                     clones=unique([hTrackPad.Tracks.TableData.Ancestor_ID{:}]);
                     clones=arrayfun(@(x) ['Pedigree ' num2str(x)],clones,'UniformOutput',0);
                     hTrackPad.TrackPanel.ClonesPopup.String=clones;
+                    hTrackPad.TrackPanel.ClonesPopup.Value=1;
+                    ndx=[hTrackPad.Tracks.TableData.Ancestor_ID{:}]==1;
+                    progenyid=sort([hTrackPad.Tracks.TableData.Progeny_ID{ndx}]);
+                    progenyid=arrayfun(@(x) ['Track ' num2str(x)],progenyid,'UniformOutput',0);
+                    hTrackPad.TrackPanel.TracksPopup.String=progenyid;
+                    hTrackPad.TrackPanel.TracksPopup.Value=1;
+%                     v.Source=hTrackPad.TrackPanel.TracksPopup;
+%                     hTrackPad.ChooseTrack(hTrackPad,v,hTrackPad);
                     if isempty(hTrackPad.TrackNavigator)
                         hTrackPad.TrackNavigator=TrackNavigator(hTrackPad.Tracks);
                     elseif ~isvalid(hTrackPad.TrackNavigator.TableFigureHandle)
@@ -1427,9 +1447,18 @@ function AnnotateTrack(hObject,EventData,hTrackPad)
                 end
                 
                 %update track panel
+               
                 clones=unique([hTrackPad.Tracks.TableData.Ancestor_ID{:}]);
                 clones=arrayfun(@(x) ['Pedigree ' num2str(x)],clones,'UniformOutput',0);
                 hTrackPad.TrackPanel.ClonesPopup.String=clones;
+                hTrackPad.TrackPanel.ClonesPopup.Value=1;
+                ndx=[hTrackPad.Tracks.TableData.Ancestor_ID{:}]==1;
+                progenyid=sort([hTrackPad.Tracks.TableData.Progeny_ID{ndx}]);
+                progenyid=arrayfun(@(x) ['Track ' num2str(x)],progenyid,'UniformOutput',0);
+                hTrackPad.TrackPanel.TracksPopup.String=progenyid;
+                hTrackPad.TrackPanel.TracksPopup.Value=1;
+%                 v.Source=hTrackPad.TrackPanel.TracksPopup;
+%                 hTrackPad.ChooseTrack(hTrackPad,v,hTrackPad);
                 hTrackPad.TrackNavigator=TrackNavigator(hTrackPad.Tracks);
                 close(hTrackPad.TrackNavigator.TableFigureHandle);
             end
@@ -1450,7 +1479,16 @@ function AnnotateTrack(hObject,EventData,hTrackPad)
             uimenu(hTrackPad.AnnotationDisplayMenuHandle,'Label','None',...
                 'Callback',{@hTrackPad.ChangeAnnotationDisplay,hTrackPad},...
                 'Checked','on','Tag','Change annotation display');
-            
+            % manually change Display annotations to PedigreeID
+            MenuLabels={hTrackPad.AnnotationDisplayMenuHandle.Children.Text};
+            Checked={hTrackPad.AnnotationDisplayMenuHandle.Children.Checked};
+            ndx=contains(Checked,'on');
+            hTrackPad.AnnotationDisplayMenuHandle.Children(ndx).Checked='off';
+            ndx=contains(MenuLabels,'PedigreeID');
+            hTrackPad.AnnotationDisplayMenuHandle.Children(ndx).Checked='on';
+            v=[];
+            v.Source=hTrackPad.AnnotationDisplayMenuHandle.Children(ndx);
+            hTrackPad.ChangeAnnotationDisplay(hTrackPad,v,hTrackPad);
             guidata(hTrackPad.FigureHandle,handles);
             toc;
         end
@@ -1524,7 +1562,8 @@ function AnnotateTrack(hObject,EventData,hTrackPad)
             %deletes the whole track if CurrentNdx==1
             n=hTrackPad.ImageStack.CurrentNdx;
             m=hTrackPad.ImageStack.NumberOfImages;
-            if hTrackPad.Tracks.CurrentTrackID>0 && ~hTrackPad.Tracks.Editing %cell selected but not currently editing
+%             if hTrackPad.Tracks.CurrentTrackID>0 && ~hTrackPad.Tracks.Editing %cell selected but not currently editing
+            if hTrackPad.Tracks.CurrentTrackID>0
                 n=1;
                 hTrackPad.ImageContextMenu.AnnotateTrack.Visible='off';
                 if length(hTrackPad.Tracks.Tracks)>1
@@ -1627,8 +1666,8 @@ function AnnotateTrack(hObject,EventData,hTrackPad)
                 
                 %turn on relevant context menus
                 hTrackPad.ImageContextMenu.ContinueTrack.Visible='on';
-                hTrackPad.ImageContextMenu.StopTrack.Visible='off';
-                hTrackPad.ImageContextMenu.StopEditTrack.Visible='on';
+    %            hTrackPad.ImageContextMenu.StopTrack.Visible='off';
+     %           hTrackPad.ImageContextMenu.StopEditTrack.Visible='on';
                 hTrackPad.ImageContextMenu.Reposition.Visible='on';                
             end
             
@@ -1643,48 +1682,52 @@ function AnnotateTrack(hObject,EventData,hTrackPad)
                 hTrackPad.Track.FindCellState; % update with current find cell state
             hTrackPad.Track.FindCellState='go';
             hTrackPad.Track.Interrupt=false;
+            % if editing set range to end of stack
+            if hTrackPad.Tracks.EditedTrackID>0
+                hTrackPad.Track.trackrange(2)=hTrackPad.ImageStack.NumberOfImages;
+            end
 %             lastimage=find(cellfun(@(x) ~isempty(x),hTrackPad.Track.Track),1,'last'); 
-           
-            if hTrackPad.Track.Editing %if tracking is continued after editing a track
-                %reinstate pause and stop listeners if deleted (will be
-                %deleted for tracks being edited)
-                hTrackPad.Track.LostCellListener=event.listener(hTrackPad.Track,'LostCellEvent',@hTrackPad.listenLostCellEvent); %lost cell event is generated by tracker and listened to by trackpad
-                hTrackPad.Track.EndTrackListener=event.listener(hTrackPad.Track,'EndOfTrackEvent',@hTrackPad.listenEndOfTrackEvent);%endtrack event is generated by tracker and listened to by trackpad
-                hTrackPad.Track.StopListenerHandle=event.listener(hTrackPad.Track.CntrlObj,'StopEvent',@(varargin)tracker.listenStopEvent(varargin{:})); %stop event is generated by trackpad and list
-                hTrackPad.Track.PauseListenerHandle=event.listener(hTrackPad.Track.CntrlObj,'PauseEvent',@(varargin)tracker.listenPauseEvent(varargin{:}));
-%                 hTrackPad.Track.PauseListenerHandle=event.listener(hTrackPad.Track.CntrlObj,'PauseEvent',@hTrackPad.Track.listenPauseEvent);
-                hTrackPad.Track.parameters.NumberOfPriorImages=1; %set prior images to 1 - easier for @tracker.getrefimg function 
-                current_track=hTrackPad.Tracks.CurrentTrackID;
-                current_ndx=hTrackPad.ImageStack.CurrentNdx;
-                range=hTrackPad.Tracks.Tracks(current_track).Track.trackrange;               
-                 
-                h=waitbar(0,'Loading ellipses','WindowStyle','Modal');
-                for i=range(1):current_ndx
-    %                 disp(num2str(i));                        
-
-                        if i==range(1)
-                           [r,c]=size(hTrackPad.Track.Track{i}.CellIm);
-%                                            hTrackPad.Track.parameters.refimg=hTrackPad.Track.Track{lastimage}.CellIm;
-                           hTrackPad.Track.parameters.refimg=hTrackPad.Track.Track{i}.CellIm;
-                        elseif i>range(1)
-                        hTrackPad.Track.Track{i}.ParentTracker.parameters.startrectangle=hTrackPad.Track.Track{i}.Position;
-                        Im=squeeze(hTrackPad.Track.Track{i}.ParentTracker.GUIHandle.ImageStack.Stack(:,:,1,i));
-                        hTrackPad.Track.Track{i}.Mask=createMask(hTrackPad.Track.Track{i}.EllipseHandle);
-                        Im(~hTrackPad.Track.Track{i}.Mask)=NaN;
-                        hTrackPad.Track.Track{i}.CellIm=Im;
-                        hTrackPad.Track.trackrange=[range(1) hTrackPad.ImageStack.NumberOfImages]; %reset track range if tracking is continued after editing
-                        % trim image
-                        rows=sum(hTrackPad.Track.Track{i}.Mask,2)>0;
-                        cols=sum(hTrackPad.Track.Track{i}.Mask,1)>0;
-                        hTrackPad.Track.Track{i}.CellIm=hTrackPad.Track.Track{i}.CellIm(rows,cols);                            
-                            hTrackPad.Track.Track{i}.CellIm=imresize(hTrackPad.Track.Track{i}.CellIm,[r c]);
-                        end
-                waitbar(i/current_ndx,h);   
-                end
-                close(h);
-                hTrackPad.Track.Editing=false; 
-                
-            end            
+  % discontinued editing mode          
+%             if hTrackPad.Track.Editing %if tracking is continued after editing a track
+%                 %reinstate pause and stop listeners if deleted (will be
+%                 %deleted for tracks being edited)
+%                 hTrackPad.Track.LostCellListener=event.listener(hTrackPad.Track,'LostCellEvent',@hTrackPad.listenLostCellEvent); %lost cell event is generated by tracker and listened to by trackpad
+%                 hTrackPad.Track.EndTrackListener=event.listener(hTrackPad.Track,'EndOfTrackEvent',@hTrackPad.listenEndOfTrackEvent);%endtrack event is generated by tracker and listened to by trackpad
+%                 hTrackPad.Track.StopListenerHandle=event.listener(hTrackPad.Track.CntrlObj,'StopEvent',@(varargin)tracker.listenStopEvent(varargin{:})); %stop event is generated by trackpad and list
+%                 hTrackPad.Track.PauseListenerHandle=event.listener(hTrackPad.Track.CntrlObj,'PauseEvent',@(varargin)tracker.listenPauseEvent(varargin{:}));
+% %                 hTrackPad.Track.PauseListenerHandle=event.listener(hTrackPad.Track.CntrlObj,'PauseEvent',@hTrackPad.Track.listenPauseEvent);
+%                 hTrackPad.Track.parameters.NumberOfPriorImages=1; %set prior images to 1 - easier for @tracker.getrefimg function 
+%                 current_track=hTrackPad.Tracks.CurrentTrackID;
+%                 current_ndx=hTrackPad.ImageStack.CurrentNdx;
+%                 range=hTrackPad.Tracks.Tracks(current_track).Track.trackrange;               
+%                  
+%                 h=waitbar(0,'Loading ellipses','WindowStyle','Modal');
+%                 for i=range(1):current_ndx
+%     %                 disp(num2str(i));                        
+% 
+%                         if i==range(1)
+%                            [r,c]=size(hTrackPad.Track.Track{i}.CellIm);
+% %                                            hTrackPad.Track.parameters.refimg=hTrackPad.Track.Track{lastimage}.CellIm;
+%                            hTrackPad.Track.parameters.refimg=hTrackPad.Track.Track{i}.CellIm;
+%                         elseif i>range(1)
+%                         hTrackPad.Track.Track{i}.ParentTracker.parameters.startrectangle=hTrackPad.Track.Track{i}.Position;
+%                         Im=squeeze(hTrackPad.Track.Track{i}.ParentTracker.GUIHandle.ImageStack.Stack(:,:,1,i));
+%                         hTrackPad.Track.Track{i}.Mask=createMask(hTrackPad.Track.Track{i}.EllipseHandle);
+%                         Im(~hTrackPad.Track.Track{i}.Mask)=NaN;
+%                         hTrackPad.Track.Track{i}.CellIm=Im;
+%                         hTrackPad.Track.trackrange=[range(1) hTrackPad.ImageStack.NumberOfImages]; %reset track range if tracking is continued after editing
+%                         % trim image
+%                         rows=sum(hTrackPad.Track.Track{i}.Mask,2)>0;
+%                         cols=sum(hTrackPad.Track.Track{i}.Mask,1)>0;
+%                         hTrackPad.Track.Track{i}.CellIm=hTrackPad.Track.Track{i}.CellIm(rows,cols);                            
+%                             hTrackPad.Track.Track{i}.CellIm=imresize(hTrackPad.Track.Track{i}.CellIm,[r c]);
+%                         end
+%                 waitbar(i/current_ndx,h);   
+%                 end
+%                 close(h);
+%                 hTrackPad.Track.Editing=false; 
+%                 
+%             end            
             hTrackPad.ImageContextMenu.ContinueTrack.Visible='off';
             hTrackPad.ImageContextMenu.EditTrack.Visible='off';
             hTrackPad.ImageContextMenu.StopEditTrack.Visible='off';
@@ -1708,37 +1751,69 @@ function AnnotateTrack(hObject,EventData,hTrackPad)
             hTrackPad.ImageContextMenu.Cancel.Visible='off'; %cancel
             hTrackPad.ImageContextMenu.ReturnToStart.Visible='off'; %return to start
             hTrackPad.ImageContextMenu.GoToEnd.Visible='off'; %go to end
+            % load track from TrackCollection into CurrentTrack
+            hTrackPad.Tracks.EditedTrackID=hTrackPad.Tracks.CurrentTrackID;
+            % get first ellipse
             
-            current_track=hTrackPad.Tracks.CurrentTrackID;
-            current_ndx=hTrackPad.ImageStack.CurrentNdx;
-            range=hTrackPad.Tracks.Tracks(current_track).Track.trackrange;
-            hTrackPad.Track=hTrackPad.Tracks.Tracks(current_track).Track;
-            hTrackPad.Tracks.Editing=true;
-            hTrackPad.Track.Editing=true;
-            ImageAxes=get(hTrackPad.ImageHandle,'parent');
-            h=waitbar(0,'Loading ellipses','WindowStyle','Modal');
-            for i=1:(range(2)-range(1))+1
-                Position=hTrackPad.Track.Track{i+range(1)-1}.Position;
-                hEllipse=imellipse(hTrackPad.ImageHandle.Parent,Position);
-                set(hEllipse,'Visible','off','PickableParts','none');
-                setColor(hEllipse,'b');
-                setResizable(hEllipse,false);
-                hTrackPad.Tracks.Tracks(current_track).Track.Track{i+range(1)-1}.EllipseHandle=hEllipse;
-                
-                if (i+range(1)-1)==current_ndx
-                    set(hEllipse,'Visible','on');
-                end
+            
+            % TrackPad thinks this is a new track
+            % when user clicks StopTrack will replace track instead of
+            % append track to track collection.
+            CurrentNdx=hTrackPad.ImageStack.CurrentNdx;
+            range=hTrackPad.Tracks.Tracks(hTrackPad.Tracks.EditedTrackID).Track.trackrange;
+            hTrackPad.ImageStack.CurrentNdx=range(1);
+             % make trackpad think that we are editing a new track           
+            hTrackPad.Tracks.CurrentTrackID=0;
+            % create new tracker object
+            Position=hTrackPad.Tracks.Tracks(hTrackPad.Tracks.EditedTrackID).Track.Track{range(1)}.Position;
+            hEllipse=imellipse(hTrackPad.ImageHandle.Parent,Position);
+            set(hEllipse,'Visible','on','PickableParts','none');
+            setColor(hEllipse,'b');
+            setResizable(hEllipse,false);
+            hTrackPad.Track=tracker(range,hEllipse,hTrackPad); % create new Track object
+            hTrackPad.Track.Track{hTrackPad.ImageStack.CurrentNdx}.Mask=...
+                    hTrackPad.Tracks.Tracks(hTrackPad.Tracks.EditedTrackID).Track.Track{hTrackPad.ImageStack.CurrentNdx}.Mask;
+            hTrackPad.Track.Track{hTrackPad.ImageStack.CurrentNdx}.CellIm=...
+                hTrackPad.Tracks.Tracks(hTrackPad.Tracks.EditedTrackID).Track.Track{hTrackPad.ImageStack.CurrentNdx}.CellIm;
+            hTrackPad.Track.Track{hTrackPad.ImageStack.CurrentNdx}.Annotation=...
+                hTrackPad.Tracks.Tracks(hTrackPad.Tracks.EditedTrackID).Track.Track{hTrackPad.ImageStack.CurrentNdx}.Annotation;
+            hTrackPad.Track.parameters=hTrackPad.Tracks.Tracks(hTrackPad.Tracks.EditedTrackID).Track.parameters; % use old parameters
+            h=waitbar(0,'Loading track for editing');
+            for i=2:(range(2)-range(1))+1
+                hTrackPad.ImageStack.CurrentNdx=hTrackPad.ImageStack.CurrentNdx+1;
+                Position=hTrackPad.Tracks.Tracks(hTrackPad.Tracks.EditedTrackID).Track.Track{hTrackPad.ImageStack.CurrentNdx}.Position;
+                hTrackPad.Track.CurrentEllipse=imellipse(hTrackPad.ImageHandle.Parent,Position);
+                set(hTrackPad.Track.CurrentEllipse,'Visible','on','PickableParts','none');
+                setColor(hTrackPad.Track.CurrentEllipse,'b');
+                setResizable(hTrackPad.Track.CurrentEllipse,false);
+                hTrackPad.Track.Track{hTrackPad.ImageStack.CurrentNdx}=CellImage(hTrackPad.Track);
+                hTrackPad.Track.Track{hTrackPad.ImageStack.CurrentNdx}.CntrlObj=hTrackPad; % allow cell image to listen to TrackPad events such as hide or show ellipses.
+                hTrackPad.Track.Track{hTrackPad.ImageStack.CurrentNdx}.Position=Position;
+                hTrackPad.Track.Track{hTrackPad.ImageStack.CurrentNdx}.Mask=...
+                    hTrackPad.Tracks.Tracks(hTrackPad.Tracks.EditedTrackID).Track.Track{hTrackPad.ImageStack.CurrentNdx}.Mask;
+                hTrackPad.Track.Track{hTrackPad.ImageStack.CurrentNdx}.CellIm=...
+                    hTrackPad.Tracks.Tracks(hTrackPad.Tracks.EditedTrackID).Track.Track{hTrackPad.ImageStack.CurrentNdx}.CellIm;
+                hTrackPad.Track.Track{hTrackPad.ImageStack.CurrentNdx}.Annotation=...
+                    hTrackPad.Tracks.Tracks(hTrackPad.Tracks.EditedTrackID).Track.Track{hTrackPad.ImageStack.CurrentNdx}.Annotation;
+                hTrackPad.Track.Track{hTrackPad.ImageStack.CurrentNdx}.Result=...
+                    hTrackPad.Tracks.Tracks(hTrackPad.Tracks.EditedTrackID).Track.Track{hTrackPad.ImageStack.CurrentNdx}.Result;
                 waitbar(i/((range(2)-range(1))+1),h);
             end
             close(h);
-                       
+%             if CurrentNdx==range(2)
+%                 hTrackPad.ImageStack.CurrentNdx=CurrentNdx-1; % gets rid of bug! No ellipse found in range(2)+1  
+%             else
+%                 
+%             end    
+            hTrackPad.ImageStack.CurrentNdx=CurrentNdx;
             hTrackPad.FrameSliderHandle.Enable='on';
             hTrackPad.ImageContextMenu.EditTrack.Visible='off';
-            hTrackPad.ImageContextMenu.StopEditTrack.Visible='on';
+            hTrackPad.ImageContextMenu.StopEditTrack.Visible='off'; % stop edit track discontinued
             hTrackPad.ImageContextMenu.Reposition.Visible='on';
             hTrackPad.ImageContextMenu.ContinueTrack.Visible='on';
             hTrackPad.ImageContextMenu.StopTrack.Visible='on';
             hTrackPad.ImageContextMenu.DeleteTrack.Visible='on';
+           
         end
         
         
@@ -1871,10 +1946,10 @@ function AnnotateTrack(hObject,EventData,hTrackPad)
             hTrackPad.ImageContextMenu.StopTrack.Visible='on';
             hTrackPad.ImageContextMenu.DeleteTrack.Visible='on';
             
-            if hTrackPad.Track.Editing 
-              hTrackPad.ImageContextMenu.StopTrack.Visible='off';
-              hTrackPad.Track.Track{n}.Position=CorrectPosition;
-            end
+%             if hTrackPad.Track.Editing 
+%               hTrackPad.ImageContextMenu.StopTrack.Visible='off';
+%               hTrackPad.Track.Track{n}.Position=CorrectPosition;
+%             end  % editing mode discontinued
         end
         
         
@@ -2435,13 +2510,14 @@ function AnnotateTrack(hObject,EventData,hTrackPad)
         function ChangeAnnotationDisplay(Object,EventData,hTrackPad)
             if ~isempty(hTrackPad.Tracks)
                 
-                annotationdisplayhandle=findall(gcf,'Tag','Change annotation display');
-                fnames=fliplr(fieldnames(hTrackPad.CellProperties(3).Type)');
+%                 annotationdisplayhandle=findall(gcf,'Tag','Change annotation display');
+                annotationdisplayhandle=hTrackPad.AnnotationDisplayMenuHandle.Children;
+%                 fnames=fliplr(fieldnames(hTrackPad.CellProperties(3).Type)');
                 
-                for i=1:length(fnames)
-                   annotationdisplayhandle(i+1).Label=fnames{i};
-                    
-                end
+%                 for i=1:length(fnames)
+%                    annotationdisplayhandle(i+1).Label=fnames{i};
+%                     
+%                 end
 %                 structfun((@(x)  x annotationdisplayhandle.Label),fliplr(fnames))
                 
                 for i=1:length(annotationdisplayhandle)
@@ -2514,6 +2590,7 @@ function AnnotateTrack(hObject,EventData,hTrackPad)
             go2endhandle=findall(hTrackPad.FigureHandle,'TooltipString','Go to end of track');
             go2endcallback=get(go2endhandle,'ClickedCallback');
             go2endcallback{1}(go2endhandle,[],hTrackPad);
+            hTrackPad.ImageContextMenu.SelectTrack.Visible='off';
         end
         
         function ChooseClone(Object,EventData,hTrackPad)
