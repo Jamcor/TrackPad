@@ -3,7 +3,7 @@ This repository contains all MATLAB source code for TrackPad single-cell trackin
 
 # Contributors 
 The TrackPad platform was developed by Dr Robert Nordon @ the University of New South Wales. 
-Dr James Cornwell @ the University of Sydney has contributed to GUI development, user-experience, and computational speed.  
+Dr James Cornwell @ NIH has contributed to GUI development, user-experience, and computational speed.  
 
 # Hardware and software requirements
 *MATLAB 2015a or later (including Statistics and Machine Learning Toolbox, Image Processing Toolbox)
@@ -30,6 +30,6 @@ A training video is provided in this repository.
 An example image stack object and track file can be found here - https://cloudstor.aarnet.edu.au/plus/s/w2ujKT8bzl7TttL
 COLO316 cell line. 20 min acquisition frequency over 72hrs. 20x objective. 3x3 contiguous grid.  
 
-Any questions should be directed to Dr Robert Nordon (r.nordon@unsw.edu.au) or Dr James Cornwell (james.cornwell@sydney.edu.au)
+Any questions should be directed to Dr Robert Nordon (r.nordon@unsw.edu.au) or Dr James Cornwell (cornwellja@mail.nih.gov)
 
 February 2018
