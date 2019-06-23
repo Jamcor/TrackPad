@@ -5,10 +5,10 @@ classdef TrackCollection < handle
     properties
         CurrentTrack % always has a reference to the current track even if its not complete
         Tracks
-        Editing=false;
         %listens to the following objects
         CntrlObj
         CurrentTrackID=0;
+        EditedTrackID=0;
         TableData
         tbl
     end
@@ -157,14 +157,14 @@ classdef TrackCollection < handle
             notify(obj,'AppendedTrackEvent');
         end
         
-        function AppendEditedTrack(obj,hObject,EventData)
+        function Replace(obj,hObject,EventData)
             % appends track to trackcollection
             hTrackPad=obj.CntrlObj;
             axes(hTrackPad.ImageHandle.Parent); % make sure text is written in trackpad.
             CurrentNdx=hTrackPad.ImageStack.CurrentNdx;
-            CurrentTrackID=hTrackPad.Tracks.CurrentTrackID;
+            CurrentTrackID=hTrackPad.Tracks.EditedTrackID;
             %default annotation
-                obj.Tracks(CurrentTrackID).Track=obj.CurrentTrack;
+                obj.Tracks(CurrentTrackID).Track=hTrackPad.Track;
                 delete(obj.Tracks(CurrentTrackID).Track.PauseListenerHandle);
                 delete(obj.Tracks(CurrentTrackID).Track.StopListenerHandle);
                 n=find(cellfun(@(x) ~isempty(x),obj.Tracks(CurrentTrackID).Track.Track),1,'first');
@@ -188,10 +188,16 @@ classdef TrackCollection < handle
                         %                         obj.Tracks(end).Track.Track{n}.AnnotationHandle.Visible='on';
                     end
                 end
-                % Annotated fate as Not complete by default
-                obj.Tracks(CurrentTrackID).Track.Track{m}.Annotation.Name=hTrackPad.CellProperties(2).Name;
-                obj.Tracks(CurrentTrackID).Track.Track{m}.Annotation.Type=hTrackPad.CellProperties(2).Type{1};
-                obj.Tracks(CurrentTrackID).Track.Track{m}.Annotation.Symbol=hTrackPad.CellProperties(2).Symbol{1};
+                % Annotated fate as Not complete if not already annotated
+                if isempty(obj.Tracks(CurrentTrackID).Track.Track{m}.Annotation)
+                    obj.Tracks(CurrentTrackID).Track.Track{m}.Annotation.Name=hTrackPad.CellProperties(2).Name;
+                    obj.Tracks(CurrentTrackID).Track.Track{m}.Annotation.Type=hTrackPad.CellProperties(2).Type{1};
+                    obj.Tracks(CurrentTrackID).Track.Track{m}.Annotation.Symbol=hTrackPad.CellProperties(2).Symbol{1};
+                elseif ~strcmp(obj.Tracks(CurrentTrackID).Track.Track{m}.Annotation.Name,'Fate')
+                    obj.Tracks(CurrentTrackID).Track.Track{m}.Annotation.Name=hTrackPad.CellProperties(2).Name;
+                    obj.Tracks(CurrentTrackID).Track.Track{m}.Annotation.Type=hTrackPad.CellProperties(2).Type{1};
+                    obj.Tracks(CurrentTrackID).Track.Track{m}.Annotation.Symbol=hTrackPad.CellProperties(2).Symbol{1};
+                end
                 Position=obj.Tracks(CurrentTrackID).Track.Track{m}.Position;
                 x=Position(1)+Position(3)/2;
                 y=Position(2)+Position(4)/2;
@@ -206,14 +212,21 @@ classdef TrackCollection < handle
                 % Annotate all other cells as NA (No Annotation)
                 fnames=fieldnames(hTrackPad.CellProperties(3).Type);
                 for i=(n+1):(m-1)
-                    obj.Tracks(CurrentTrackID).Track.Track{i}.Annotation.Name=fnames;
-                    obj.Tracks(CurrentTrackID).Track.Track{i}.Annotation.Type=structfun(@(x) x{1},hTrackPad.CellProperties(3).Type,'UniformOutput',0);
-                    obj.Tracks(CurrentTrackID).Track.Track{i}.Annotation.Symbol=structfun(@(x) x{1},hTrackPad.CellProperties(3).Symbol,'UniformOutput',0);
+                    if isempty(obj.Tracks(CurrentTrackID).Track.Track{i}.Annotation)
+                             % keep old annotations
+                        obj.Tracks(CurrentTrackID).Track.Track{i}.Annotation.Name=fnames;
+                        obj.Tracks(CurrentTrackID).Track.Track{i}.Annotation.Type=structfun(@(x) x{1},hTrackPad.CellProperties(3).Type,'UniformOutput',0);
+                        obj.Tracks(CurrentTrackID).Track.Track{i}.Annotation.Symbol=structfun(@(x) x{1},hTrackPad.CellProperties(3).Symbol,'UniformOutput',0);
+                    elseif strcmp(obj.Tracks(CurrentTrackID).Track.Track{i}.Annotation.Name,'Fate')
+                        obj.Tracks(CurrentTrackID).Track.Track{i}.Annotation.Name=fnames;
+                        obj.Tracks(CurrentTrackID).Track.Track{i}.Annotation.Type=structfun(@(x) x{1},hTrackPad.CellProperties(3).Type,'UniformOutput',0);
+                        obj.Tracks(CurrentTrackID).Track.Track{i}.Annotation.Symbol=structfun(@(x) x{1},hTrackPad.CellProperties(3).Symbol,'UniformOutput',0);
+                    end
                     Position=obj.Tracks(CurrentTrackID).Track.Track{i}.Position;
                     x=Position(1)+Position(3)/2;
                     y=Position(2)+Position(4)/2;
                     obj.Tracks(CurrentTrackID).Track.Track{i}.AnnotationHandle=text(x,y,...
-                        hTrackPad.CellProperties(3).Symbol.(fnames{1}){1},...
+                        obj.Tracks(CurrentTrackID).Track.Track{i}.Annotation.Symbol.PedigreeID,...
                         'Color','g','HorizontalAlignment','center','Visible','off','PickableParts','none');
                     if i==CurrentNdx
                         obj.Tracks(CurrentTrackID).Track.Track{i}.AnnotationHandle.Visible='on';

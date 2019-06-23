@@ -7,7 +7,7 @@ classdef tracker < handle
         parameters
         method='correlation';
         useGPU=true;
-        Editing %logical to indicate if track is currently being edited by the user
+        %Editing %logical to indicate if track is currently being edited by the user
         
        
         %tracking control
@@ -56,7 +56,7 @@ classdef tracker < handle
             end
             obj.trackrange=range;
             obj.GUIHandle=GUIHandle;
-            obj.Editing=false;
+%             obj.Editing=false; %Editing property discontinued
             % intialize startrectangle
             p.isParallel=GUIHandle.isParallel;
             p.startrectangle=round(getPosition(hellipse));             
@@ -250,7 +250,16 @@ function getrefimg(obj)
     
     b=~isnan(obj.Track{obj.trackrange(1)}.CellIm); %CellIm has pixels from the ellipse
     oldrefimg=obj.parameters.refimg; %get last refimg
-    obj.parameters.refimg(b)=0; %turn off all pixels within the ellipse (blank slate)
+    try
+        obj.parameters.refimg(b)=0; %turn off all pixels within the ellipse (blank slate)
+    catch ME
+        v=ME.message;
+        stack=ME.stack;
+        errordlg([v newline 'Function: ' stack(1).name ', Line: ' num2str(stack(1).line),...
+            newline 'closing now'] ,'Error','modal');
+        delete(findobj);% close everything down
+    end
+        
     if obj.parameters.NumberOfPriorImages<1   % Check if NumberOfPriorImages is zero!!
         obj.parameters.NumberOfPriorImages=1;
     end
