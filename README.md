@@ -5,6 +5,9 @@ This repository contains all MATLAB source code for TrackPad single-cell trackin
 The TrackPad platform was developed by Dr Robert Nordon @ the University of New South Wales. 
 Dr James Cornwell @ NIH has contributed to GUI development, user-experience, and computational speed.  
 
+# Standalone executable 
+Can be downloaded from https://unsw-my.sharepoint.com/:u:/g/personal/z9070419_ad_unsw_edu_au/EZB9Ym6eq4NIiXgirC23TkkByfdVDq--LF95YJ2-3DD3zw?e=kdVF3a
+
 # Hardware and software requirements
 *MATLAB 2015a or later (including Statistics and Machine Learning Toolbox, Image Processing Toolbox)
 
