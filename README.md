@@ -26,7 +26,13 @@ TrackPad is a software tool implemented in MATLAB that is used to track single c
 
 # Training videos
 Introduction http://thebox.unsw.edu.au/video/introduction8
-http://thebox.unsw.edu.au/video/training-video-1-creating-imagestacks
+1. http://thebox.unsw.edu.au/video/training-video-1-creating-imagestacks
+2. http://thebox.unsw.edu.au/video/training-video-2-tracking-cells
+3. http://thebox.unsw.edu.au/video/training-video-3-editing-tracks
+4. http://thebox.unsw.edu.au/video/training-video-4-annotating-tracks
+5. http://thebox.unsw.edu.au/video/training-video-5-selection-of-cctm-parameters
+6. http://thebox.unsw.edu.au/video/training-video-6-avatar-simulations-for-optimisation
+7. http://thebox.unsw.edu.au/video/training-video-7-tracking-performance-analytics
 
 # Example data
 An example image stack object and track file can be found here - https://cloudstor.aarnet.edu.au/plus/s/w2ujKT8bzl7TttL
