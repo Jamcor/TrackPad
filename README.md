@@ -11,8 +11,9 @@ Please install Microsoft SharePoint before download: https://unsw-my.sharepoint.
 # Download source code (Version 2.0)
 Please install Microsoft SharePoint before download: https://unsw-my.sharepoint.com/:u:/g/personal/z9070419_ad_unsw_edu_au/EWL38cOvi6tNqhV7O5jd8ikBHUmTvlflLsooGUWtGS6ROw?e=NoHNJj
 
-Usage: Set current directory to TrackPad Master containing @class subdirectories
-Type: GUI=TrackPad; % creates a TrackPad GUI object.
+Usage: Unzip, and set MATLAB current directory to TrackPad Version 2.0 (contains @class subdirectories).
+
+Command line: GUI=TrackPad; % creates a TrackPad GUI object.
 
 # Hardware and software requirements
 *MATLAB 2015a or later (including Statistics and Machine Learning Toolbox, Image Processing Toolbox)
