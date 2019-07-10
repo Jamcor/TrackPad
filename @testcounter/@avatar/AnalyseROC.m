@@ -1,0 +1,58 @@
+function [min_rho, sr,Costfh]=AnalyseROC(TruthSet,ROCtbl)
+    TotalOutcomes=ROCtbl.TotalOutcomes;
+    TP=ROCtbl.TruePositives./ROCtbl.TotalOutcomes*100;
+    FP=ROCtbl.FalsePositives./ROCtbl.TotalOutcomes*100;
+    TN=ROCtbl.TrueNegatives./ROCtbl.TotalOutcomes*100;
+    FN=ROCtbl.FalseNegatives./ROCtbl.TotalOutcomes*100;
+    rho=ROCtbl.Rho;
+
+    Y=[TP FN FP TN];
+
+    figure();
+    area(rho,Y,'LineStyle',':');
+    xlabel('Correlation threshold (rho)');
+    ylabel('Frequency (%)');
+    % h(1).FaceColor = [0 0.25 0.25];
+    % h(2).FaceColor = [0 0.5 0.5];
+    % h(3).FaceColor = [0 0.75 0.75];
+    legend('TP', 'FN', 'FP', 'TN');
+
+    %estimate cost based on time correcting FN (lost) and FP (pause) from
+    %truthtable
+
+    lost_time=TruthSet.stats.median.lost;
+    pause_time=TruthSet.stats.median.pause;
+    go_time=TruthSet.stats.median.go;
+
+    total_time=go_time+pause_time+lost_time;
+%     lost_cost=lost_time/total_time; % why divided by total time? Cost should have units of seconds per step!
+%     pause_cost=pause_time/total_time;
+
+    cost=[go_time lost_time pause_time 0]; %TP FN FP TN % assume 5 seconds at end of track
+    costmatrix=zeros(size(Y,1),1);
+    for i=1:size(Y,1)
+        costmatrix(i)=sum(Y(i,:).*cost/100); % in step time
+    end
+
+    %find miniumum rho
+    [mincost,ndx]=min(costmatrix);
+    min_rho=rho(ndx);
+
+
+
+    Costfh=figure('Name','Rho versus cost');
+    h1=plot(rho,costmatrix,'-ko');
+    xlabel('Correlation threshold (rho)');
+    ylabel('Cost (sec per step)');
+   
+    hold on;
+    h2=plot(min_rho,mincost,'*g');
+    text(min_rho,(mincost-mincost*0.10),['Rho= ' num2str(min_rho)]);
+    hold off;
+    legend([h1,h2],'Tracking time','Minimum');
+    disp(['Min rho: ' num2str(min_rho)]);
+    sr=0;
+
+end
+
+
