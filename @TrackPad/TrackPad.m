@@ -1970,7 +1970,7 @@ function AnnotateTrack(hObject,EventData,hTrackPad)
             hTrackPad.ImageContextMenu.ContinueTrack.Visible='on';
             hTrackPad.ImageContextMenu.StopTrack.Visible='on';
             hTrackPad.ImageContextMenu.DeleteTrack.Visible='on';
-            
+            hTrackPad.Track.Track{n}.Position=CorrectPosition;
 %             if hTrackPad.Track.Editing 
 %               hTrackPad.ImageContextMenu.StopTrack.Visible='off';
 %               hTrackPad.Track.Track{n}.Position=CorrectPosition;
