@@ -104,6 +104,8 @@ classdef TrackNavigator < handle
             displaystring=textwrap(hTrackPad.TrackPanel.CurrentTrackDisplay,displaystring);
             hTrackPad.TrackPanel.CurrentTrackDisplay.String=displaystring;
             hTrackPad.TrackPanel.CurrentTrackDisplay.ForegroundColor='green';
+            % Go to end of track
+            obj.CntrlObj.GoToEnd(obj,hObject,obj.CntrlObj);
             % display pedigree diagram
             clone=obj.PedigreeData;
             obj.PlotTree(clone,PedigreeID,ProgenyID)
@@ -431,7 +433,7 @@ classdef TrackNavigator < handle
             imagestack=hTrackTable.CntrlObj.ImageStack;
             hTrackTable.PedigreeData=hTrackTable.SaveCellImages(allclones,clone_IDs,1:maxtracks,...
                 hTrackTable.CellImagePatchBuffer,pathname,imagestack);
-            hTrackTable.CntrlObj.SaveTracks(hObject,EventData,hTrackTable.CntrlObj);
+%             hTrackTable.CntrlObj.SaveTracks(hObject,EventData,hTrackTable.CntrlObj);
             
         end
         
@@ -729,8 +731,10 @@ classdef TrackNavigator < handle
             frameid=find(clone{cloneid}.TimeStamps==time); %absolute frame id
             relframeid=clone{cloneid}.track{trackid}.T(:)==time; %frame id rel to cell birth
 
-            x=clone{cloneid}.track{trackid}.X(relframeid);
-            y=clone{cloneid}.track{trackid}.Y(relframeid);
+            x=clone{cloneid}.track{trackid}.X(relframeid)+...
+                clone{cloneid}.track{trackid}.Width(relframeid)/2;
+            y=clone{cloneid}.track{trackid}.Y(relframeid)+...
+                clone{cloneid}.track{trackid}.Height(relframeid)/2;
             crop_coordinates=floor([x-buff/2,y-buff/2,buff-1,buff-1]);                     
             cdata=imageobj.CData(:,:,frameid); cmap=imageobj.CMap{frameid};
             [r,c]=size(cdata);
@@ -792,5 +796,4 @@ classdef TrackNavigator < handle
 
     
 end
-
 

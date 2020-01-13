@@ -645,13 +645,18 @@ classdef TrackPad < handle
         
         function DisplayAnnotation(~,~,hTrackPad)
             %figure(hTrackPad.FigureHandle);
+            axes(get(hTrackPad.ImageHandle,'Parent'));
             n=hTrackPad.ImageStack.CurrentNdx;
             last=hTrackPad.ImageStack.LastNdx;
             fnames=fieldnames(hTrackPad.CellProperties(3).Type);
             subsetdisplay=hTrackPad.AnnotationDisplay;
             if (n~=last)
               %switch off last annotations
-              annotation_handles=findobj(gcf,'Type','Text');
+%               annotation_handles=findobj(gcf,'Type','Text'); 
+%               RN Comment:gcf will
+%               only work if current figure is trackpad, ie. won't work
+%               with if current figure TrackTable!
+              annotation_handles=findobj(hTrackPad.FigureHandle,'Type','Text');  
               delete(annotation_handles);
               % update Stored Tracks
               m=length(hTrackPad.Tracks.Tracks);
@@ -1502,31 +1507,33 @@ function AnnotateTrack(hObject,EventData,hTrackPad)
     %             elseif strfind(FileName,'trackfile.mat') 
     %                 
     %             end
-                hTrackPad.TrackPath=PathName;
-                hTrackPad.TrackFile=FileName;
-                tbl=hTrackPad.Tracks.tbl;
-                CellProperties=hTrackPad.CellProperties;
-                TimeStamps=hTrackPad.ImageStack.AcquisitionTimes;
-                ImagePath=hTrackPad.ImageStack.PathName;
+                if FileName~=0
+                    hTrackPad.TrackPath=PathName;
+                    hTrackPad.TrackFile=FileName;
+                    tbl=hTrackPad.Tracks.tbl;
+                    CellProperties=hTrackPad.CellProperties;
+                    TimeStamps=hTrackPad.ImageStack.AcquisitionTimes;
+                    ImagePath=hTrackPad.ImageStack.PathName;
 
-                %prepare clone file
-                clone=CreateCloneFiles(hTrackPad.Tracks);
-    %             hTrackPad.TrackTable=TrackTable;
-    %             hTrackPad.TrackTable.CntrlObj=hTrackPad;
-    %             hTrackPad.TableNavigator.TableData=SubTable(hTrackPad.Tracks);
-    %             hTrackPad.TrackTable.PedigreeData=CreateCloneFiles(hTrackPad.TrackTable,hTrackPad.Tracks.tbl,...
-    %                 hTrackPad.ImageStack.AcquisitionTimes);
-    %             clone=hTrackPad.TrackTable.PedigreeData;
+                    %prepare clone file
+                    clone=CreateCloneFiles(hTrackPad.Tracks);
+        %             hTrackPad.TrackTable=TrackTable;
+        %             hTrackPad.TrackTable.CntrlObj=hTrackPad;
+        %             hTrackPad.TableNavigator.TableData=SubTable(hTrackPad.Tracks);
+        %             hTrackPad.TrackTable.PedigreeData=CreateCloneFiles(hTrackPad.TrackTable,hTrackPad.Tracks.tbl,...
+        %                 hTrackPad.ImageStack.AcquisitionTimes);
+        %             clone=hTrackPad.TrackTable.PedigreeData;
 
 
-                h=waitbar(1,['Please wait for ' FileName ' to save.']); 
-    %             save([PathName,FileName],'tbl','CellProperties','TimeStamps','ImagePath','clone','-v7.3');
-    %             too slow
-                save([PathName,FileName],'tbl','CellProperties','TimeStamps','ImagePath','clone');
-                close(h);
-            else
-                errordlg('No tracks found');
-            end
+                    h=waitbar(1,['Please wait for ' FileName ' to save.']); 
+        %             save([PathName,FileName],'tbl','CellProperties','TimeStamps','ImagePath','clone','-v7.3');
+        %             too slow
+                    save([PathName,FileName],'tbl','CellProperties','TimeStamps','ImagePath','clone');
+                    close(h);
+                else
+                    errordlg('No tracks found');
+                end
+            end   
         end
         
         function HotKeyFcn(hObject,EventData,hTrackPad)
@@ -2605,9 +2612,11 @@ function AnnotateTrack(hObject,EventData,hTrackPad)
             displaystring={['Pedigree ' num2str(lineageid)] ['Track ' num2str(progenyid)]};
             displaystring=textwrap(hTrackPad.TrackPanel.CurrentTrackDisplay,displaystring);
             hTrackPad.TrackPanel.CurrentTrackDisplay.String=displaystring;
-            go2endhandle=findall(hTrackPad.FigureHandle,'TooltipString','Go to end of track');
-            go2endcallback=get(go2endhandle,'ClickedCallback');
-            go2endcallback{1}(go2endhandle,[],hTrackPad);
+%             go2endhandle=findall(hTrackPad.FigureHandle,'TooltipString','Go to end of track');
+%             go2endcallback=get(go2endhandle,'ClickedCallback');
+%             go2endcallback{1}(go2endhandle,[],hTrackPad); % code not
+%             portable (RN)
+            hTrackPad.GoToEnd(Object,EventData,hTrackPad);
             hTrackPad.ImageContextMenu.SelectTrack.Visible='off';
         end
         
@@ -2768,8 +2777,8 @@ function AnnotateTrack(hObject,EventData,hTrackPad)
                     truthtable=hTrackPad.Tracks.tbl;
 
                     [TruthSet,ROCtbl]=avatar.AnalyseAvatarTracks(truthtable,avatartrackfiles,avatarpath);
-                    [rho_optimum,rho,Costfh]=avatar.AnalyseROC(TruthSet,ROCtbl(2:end,:)); %remove rho=-0.1 condition
-                    savefig(Costfh,[hTrackPad.TrackPath 'Cost.fig']);
+                    [rho_optimum,~]=avatar.AnalyseROC(TruthSet,ROCtbl(2:end,:)); %remove rho=-0.1 condition
+
                     %update tracking parameters 
 
                      hTrackPad.CurrentTrackingParameters.CorrelationThreshold=rho_optimum;
