@@ -5,13 +5,15 @@ This repository contains all MATLAB source code for TrackPad single-cell trackin
 The TrackPad platform was developed by Dr Robert Nordon @ the University of New South Wales. 
 Dr James Cornwell @ NIH has contributed to GUI development, user-experience, and computational speed.  
 
-# Standalone executable (Version 2.0)
-Please install Microsoft SharePoint before download: https://unsw-my.sharepoint.com/:u:/g/personal/z9070419_ad_unsw_edu_au/EQc_JcKVS2dBhsaFIkP5iu0Br6HjEBVqVIIc45bN871Vxw?e=Tb19Hd. 
+# Standalone executable (Version 2.2)
+Please install Microsoft SharePoint before download: 
+https://unsw-my.sharepoint.com/:u:/g/personal/z9070419_ad_unsw_edu_au/EQc_JcKVS2dBhsaFIkP5iu0Br6HjEBVqVIIc45bN871Vxw?e=g2UTIn
 
-# Download source code (Version 2.0)
-Please install Microsoft SharePoint before download: https://unsw-my.sharepoint.com/:u:/g/personal/z9070419_ad_unsw_edu_au/ES_Q7_1JJENHi_-cNF5fPw8BEZIOZ1HwM_C7-EA_XViuCw?e=AsmLPs
+# Download source code (Version 2.2)
+Please install Microsoft SharePoint before download: 
+https://unsw-my.sharepoint.com/:u:/g/personal/z9070419_ad_unsw_edu_au/ES_Q7_1JJENHi_-cNF5fPw8BEZIOZ1HwM_C7-EA_XViuCw?e=grWh7L
 
-Usage: Unzip, and set MATLAB current directory to TrackPad Version 2.0 (contains @class subdirectories).
+Usage: Unzip, and set MATLAB current directory to TrackPad Version 2.2 (contains @class subdirectories).
 
 Command line: GUI=TrackPad; % creates a TrackPad GUI object.
 
@@ -48,6 +50,9 @@ Introduction http://thebox.unsw.edu.au/video/introduction8
 # Example data
 An example image stack object and track file can be found here - https://cloudstor.aarnet.edu.au/plus/s/w2ujKT8bzl7TttL
 COLO316 cell line. 20 min acquisition frequency over 72hrs. 20x objective. 3x3 contiguous grid.  
+
+Example data for downstream segmentation and fluorescence quantification (Training video 8: Data provided by Draper et al.) is found at 
+https://unsw-my.sharepoint.com/:u:/g/personal/z9070419_ad_unsw_edu_au/EabRJfCNN-RLkoKyuh2-AuEBXp5z6SsMVglL0bwwKA4QMw?e=aZSWmM
 
 Any questions should be directed to Dr Robert Nordon (r.nordon@unsw.edu.au) or Dr James Cornwell (cornwellja@mail.nih.gov)
 
