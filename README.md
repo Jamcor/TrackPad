@@ -6,10 +6,10 @@ The TrackPad platform was developed by Dr Robert Nordon @ the University of New 
 Dr James Cornwell @ NIH has contributed to GUI development, user-experience, and computational speed.  
 
 # Standalone executable (Version 2.0)
-Please install Microsoft SharePoint before download: https://unsw-my.sharepoint.com/:u:/g/personal/z9070419_ad_unsw_edu_au/EZB9Ym6eq4NIiXgirC23TkkByfdVDq--LF95YJ2-3DD3zw?e=kdVF3a. 
+Please install Microsoft SharePoint before download: https://unsw-my.sharepoint.com/:u:/g/personal/z9070419_ad_unsw_edu_au/EQc_JcKVS2dBhsaFIkP5iu0Br6HjEBVqVIIc45bN871Vxw?e=Tb19Hd. 
 
 # Download source code (Version 2.0)
-Please install Microsoft SharePoint before download: https://unsw-my.sharepoint.com/:u:/g/personal/z9070419_ad_unsw_edu_au/EWL38cOvi6tNqhV7O5jd8ikBHUmTvlflLsooGUWtGS6ROw?e=NoHNJj
+Please install Microsoft SharePoint before download: https://unsw-https://unsw-my.sharepoint.com/:u:/g/personal/z9070419_ad_unsw_edu_au/ES_Q7_1JJENHi_-cNF5fPw8BEZIOZ1HwM_C7-EA_XViuCw?e=tGq2Jg
 
 Usage: Unzip, and set MATLAB current directory to TrackPad Version 2.0 (contains @class subdirectories).
 
@@ -43,6 +43,7 @@ Introduction http://thebox.unsw.edu.au/video/introduction8
 5. http://thebox.unsw.edu.au/video/training-video-5-selection-of-cctm-parameters
 6. http://thebox.unsw.edu.au/video/training-video-6-avatar-simulations-for-optimisation
 7. http://thebox.unsw.edu.au/video/training-video-7-tracking-performance-analytics
+8. https://thebox.unsw.edu.au/2E6B93C0-3433-11EA-B8AA1AEAFC7AA695
 
 # Example data
 An example image stack object and track file can be found here - https://cloudstor.aarnet.edu.au/plus/s/w2ujKT8bzl7TttL
