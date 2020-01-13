@@ -9,7 +9,7 @@ Dr James Cornwell @ NIH has contributed to GUI development, user-experience, and
 Please install Microsoft SharePoint before download: https://unsw-my.sharepoint.com/:u:/g/personal/z9070419_ad_unsw_edu_au/EQc_JcKVS2dBhsaFIkP5iu0Br6HjEBVqVIIc45bN871Vxw?e=Tb19Hd. 
 
 # Download source code (Version 2.0)
-Please install Microsoft SharePoint before download: https://unsw-https://unsw-my.sharepoint.com/:u:/g/personal/z9070419_ad_unsw_edu_au/ES_Q7_1JJENHi_-cNF5fPw8BEZIOZ1HwM_C7-EA_XViuCw?e=tGq2Jg
+Please install Microsoft SharePoint before download: https://unsw-my.sharepoint.com/:u:/g/personal/z9070419_ad_unsw_edu_au/ES_Q7_1JJENHi_-cNF5fPw8BEZIOZ1HwM_C7-EA_XViuCw?e=AsmLPs
 
 Usage: Unzip, and set MATLAB current directory to TrackPad Version 2.0 (contains @class subdirectories).
 
