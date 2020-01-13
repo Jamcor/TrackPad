@@ -7,12 +7,11 @@ Dr James Cornwell @ NIH has contributed to GUI development, user-experience, and
 
 # Standalone executable (Version 2.2)
 Please install Microsoft SharePoint before download: 
-https://unsw-my.sharepoint.com/:u:/g/personal/z9070419_ad_unsw_edu_au/EQc_JcKVS2dBhsaFIkP5iu0Br6HjEBVqVIIc45bN871Vxw?e=g2UTIn
+https://unsw-my.sharepoint.com/:u:/g/personal/z9070419_ad_unsw_edu_au/EQc_JcKVS2dBhsaFIkP5iu0Br6HjEBVqVIIc45bN871Vxw?e=odck6J
 
 # Download source code (Version 2.2)
 Please install Microsoft SharePoint before download: 
-https://unsw-my.sharepoint.com/:u:/g/personal/z9070419_ad_unsw_edu_au/ES_Q7_1JJENHi_-cNF5fPw8BEZIOZ1HwM_C7-EA_XViuCw?e=grWh7L
-
+https://unsw-my.sharepoint.com/:u:/g/personal/z9070419_ad_unsw_edu_au/ES_Q7_1JJENHi_-cNF5fPw8BEZIOZ1HwM_C7-EA_XViuCw?e=BARsbk
 Usage: Unzip, and set MATLAB current directory to TrackPad-master_Revision_2.2 (contains @class subdirectories).
 
 Command line: GUI=TrackPad; % creates a TrackPad GUI object.
@@ -56,4 +55,4 @@ https://unsw-my.sharepoint.com/:u:/g/personal/z9070419_ad_unsw_edu_au/EabRJfCNN-
 
 Any questions should be directed to Dr Robert Nordon (r.nordon@unsw.edu.au) or Dr James Cornwell (cornwellja@mail.nih.gov)
 
-June 2019
+January 2020
