@@ -13,7 +13,7 @@ https://unsw-my.sharepoint.com/:u:/g/personal/z9070419_ad_unsw_edu_au/EQc_JcKVS2
 Please install Microsoft SharePoint before download: 
 https://unsw-my.sharepoint.com/:u:/g/personal/z9070419_ad_unsw_edu_au/ES_Q7_1JJENHi_-cNF5fPw8BEZIOZ1HwM_C7-EA_XViuCw?e=grWh7L
 
-Usage: Unzip, and set MATLAB current directory to TrackPad Version 2.2 (contains @class subdirectories).
+Usage: Unzip, and set MATLAB current directory to TrackPad-master_Revision_2.2 (contains @class subdirectories).
 
 Command line: GUI=TrackPad; % creates a TrackPad GUI object.
 
@@ -51,8 +51,8 @@ Introduction http://thebox.unsw.edu.au/video/introduction8
 An example image stack object and track file can be found here - https://cloudstor.aarnet.edu.au/plus/s/w2ujKT8bzl7TttL
 COLO316 cell line. 20 min acquisition frequency over 72hrs. 20x objective. 3x3 contiguous grid.  
 
-Example data for downstream segmentation and fluorescence quantification (Training video 8: Data provided by Draper et al.) is found at 
-https://unsw-my.sharepoint.com/:u:/g/personal/z9070419_ad_unsw_edu_au/EabRJfCNN-RLkoKyuh2-AuEBXp5z6SsMVglL0bwwKA4QMw?e=aZSWmM
+Example data for downstream segmentation and fluorescence quantification (see training video 8: data provided by Draper et al.) can be downloaded from 
+https://unsw-my.sharepoint.com/:u:/g/personal/z9070419_ad_unsw_edu_au/EabRJfCNN-RLkoKyuh2-AuEBXp5z6SsMVglL0bwwKA4QMw?e=aZSWmM. ImageStack and Tracks found in \2012120700001-1-Ch2_0002_0000\FUCCI
 
 Any questions should be directed to Dr Robert Nordon (r.nordon@unsw.edu.au) or Dr James Cornwell (cornwellja@mail.nih.gov)
 
